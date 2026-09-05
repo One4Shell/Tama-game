@@ -29,25 +29,6 @@
             overflow: hidden;
         }
 
-        @keyframes widgetPulse {
-            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 81, 255, 0.7); }
-            70% { transform: scale(1.05); box-shadow: 0 0 0 14px rgba(255, 94, 151, 0); }
-            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 94, 151, 0); }
-        }
-
-        @keyframes badgeBounce {
-            0%, 100% { transform: translateY(0) scale(1); }
-            50% { transform: translateY(-4px) scale(1.15); }
-        }
-
-        .floating-pet-btn {
-            animation: widgetPulse 3s infinite;
-        }
-
-        .badge-bounce {
-            animation: badgeBounce 0.8s ease-in-out infinite;
-        }
-
         @keyframes bannerWiggle {
             0%, 100% { transform: translateY(0) rotate(0deg); }
             25% { transform: translateY(-5px) rotate(-1.5deg); }
@@ -185,6 +166,37 @@
             background: #879864;
             image-rendering: pixelated;
         }
+
+        /* ===== FULL-SCREEN WIDGET (desktop + mobile) ===== */
+        #tamagotchiWidgetRoot { z-index: 99999; }
+
+        #widgetWindow:not(.hidden) {
+            position: fixed;
+            inset: 0;
+            margin: 0;
+            display: flex;
+            align-items: stretch;
+            justify-content: center;
+            background: rgba(2, 6, 23, 0.8);
+            transform-origin: center;
+            z-index: 100001;
+        }
+
+        #deviceShell {
+            width: 100vw;
+            height: 100dvh;
+            max-width: none;
+            max-height: none;
+            border-radius: 0;
+            border: none;
+            box-shadow: none;
+            padding: 0;
+            overflow-y: auto;
+            justify-content: flex-start;
+            background: var(--md-sys-surface);
+        }
+
+        .md-display-area { padding: 0; flex: 1 1 auto; min-height: 0; }
 
         /* ===== ICONE PIXEL 21x21 (box-shadow, colore = currentColor) ===== */
         .pxicon {
@@ -360,96 +372,6 @@
             border-radius: 2px;
         }
 
-        /* ===== MOBILE FULLSCREEN LAYOUT ===== */
-        @media (max-width: 640px) {
-            #tamagotchiWidgetRoot {
-                bottom: max(1.5rem, env(safe-area-inset-bottom));
-                right: 1rem;
-            }
-
-            #eggFoundBanner {
-                left: 1rem;
-                right: 1rem;
-                bottom: calc(6rem + env(safe-area-inset-bottom));
-            }
-
-            #widgetWindow:not(.hidden) {
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                margin: 0;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                background: rgba(2, 6, 23, 0.8);
-                transform-origin: center;
-                z-index: 100001;
-            }
-
-            #deviceShell {
-                width: 100%;
-                max-width: 100%;
-                max-height: 100vh;
-                max-height: 100dvh;
-                overflow-y: auto;
-                justify-content: flex-start;
-                border-radius: 0;
-                border-top: none;
-                border-left: none;
-                border-right: none;
-                padding-top: 0;
-                padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
-                padding-left: calc(0.75rem + env(safe-area-inset-left));
-                padding-right: calc(0.75rem + env(safe-area-inset-right));
-            }
-
-            #deviceShell > * {
-                flex-shrink: 0;
-            }
-
-            #widgetTitlebar {
-                position: sticky;
-                top: 0;
-                z-index: 40;
-                background: #475569;
-                border-bottom: 2px solid #1e293b;
-                margin: 0 calc(-0.75rem - env(safe-area-inset-right)) 0.5rem calc(-0.75rem - env(safe-area-inset-left));
-                padding: 0.25rem 0;
-                padding-top: calc(0.25rem + env(safe-area-inset-top));
-                padding-left: calc(1.25rem + env(safe-area-inset-left));
-                padding-right: calc(1.25rem + env(safe-area-inset-right));
-            }
-
-            #minimizeWidgetBtn, #closeWidgetBtn {
-                width: 2rem;
-                height: 2rem;
-            }
-
-            .titlebar-extra-btn {
-                font-size: 14px;
-                line-height: 1;
-            }
-
-            .tama-key {
-                width: 54px;
-                height: 54px;
-                font-size: 18px;
-            }
-
-            .shop-key {
-                width: 30px;
-                height: 30px;
-                font-size: 14px;
-            }
-
-            .tama-key-pad {
-                gap: 1.5rem;
-                padding: 10px 20px;
-            }
-
-        }
-
         /* ===== MATERIAL 3 SHELL (mobile) ===== */
         :root {
             --md-sys-surface: #0F1115;
@@ -464,17 +386,13 @@
             --md-sys-on-tertiary: #002a55;
         }
 
-        .md-appbar,
         .md-actionbar,
         .md-display-area,
-        .md-icon-btn,
         .md-fab,
         .md-shop-fab,
         .md-shell-mobile { display: flex; }
-        .md-appbar       { flex-direction: row; align-items: center; justify-content: space-between; }
         .md-actionbar    { flex-direction: column; align-items: center; gap: 8px; }
         .md-display-area { display: flex; flex-direction: column; }
-        .md-icon-btn     { align-items: center; justify-content: center; }
         .md-fab          { align-items: center; justify-content: center; }
         .md-shop-fab     { align-items: center; justify-content: center; }
 
@@ -482,16 +400,6 @@
             /* Nasconde pattern legacy che non serve più su mobile (esclude i FAB M3) */
             .tama-screw,
             .tama-key-pad .tama-key:not(.md-fab) { display: none !important; }
-            /* I bottoni del titlebar sono rimpiazzati da .md-icon-btn su mobile */
-            #widgetTitlebar > .md-appbar__actions > .titlebar-extra-btn,
-            #widgetTitlebar > .md-appbar__actions > #minimizeWidgetBtn,
-            #widgetTitlebar > .md-appbar__actions > #closeWidgetBtn { display: none !important; }
-            /* Il wrapper Tailwind (.flex.items-center) del vecchio titlebar non serve più */
-            .md-appbar__title,
-            .md-appbar__actions { display: flex; }
-            .md-appbar__title    { align-items: center; gap: 8px; min-width: 0; overflow: hidden; }
-            .md-appbar__actions  { align-items: center; gap: 2px; flex-shrink: 0; }
-
             /* Shell full-height */
             #deviceShell {
                 width: 100%;
@@ -500,82 +408,14 @@
                 background: var(--md-sys-surface);
                 border-radius: 0;
                 border: none;
-                padding: 0 calc(16px + env(safe-area-inset-right)) calc(16px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));
+                padding: 0;
                 box-shadow: none;
                 overflow-y: auto;
             }
 
-            /* AppBar */
-            .md-appbar {
-                position: sticky;
-                top: 0;
-                z-index: 40;
-                align-items: center;
-                justify-content: space-between;
-                padding: calc(8px + env(safe-area-inset-top)) 4px 8px;
-                background: color-mix(in srgb, var(--md-sys-surface-container) 92%, transparent);
-                -webkit-backdrop-filter: blur(12px);
-                backdrop-filter: blur(12px);
-                border-bottom: 1px solid var(--md-sys-outline);
-                gap: 8px;
-            }
-            .md-appbar__title {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                min-width: 0;
-                overflow: hidden;
-            }
-            .md-appbar__leading {
-                font-size: 18px;
-                line-height: 1;
-            }
-            .md-appbar__title-text {
-                font: 600 14px/1 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-                color: var(--md-sys-primary);
-                letter-spacing: .08em;
-                text-transform: uppercase;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
-            .md-appbar__actions {
-                display: flex;
-                gap: 2px;
-                align-items: center;
-                flex-shrink: 0;
-            }
-
-            /* Icon buttons */
-            .md-icon-btn {
-                width: 40px;
-                height: 40px;
-                border-radius: 9999px;
-                background: transparent;
-                color: var(--md-sys-on-surface-variant);
-                align-items: center;
-                justify-content: center;
-                font-size: 16px;
-                line-height: 1;
-                border: none;
-                cursor: pointer;
-                padding: 0;
-                transition: background-color .15s ease, color .15s ease, transform .08s ease;
-            }
-            .md-icon-btn:hover {
-                background: var(--md-sys-surface-container-high);
-                color: var(--md-sys-on-surface);
-            }
-            .md-icon-btn:active {
-                transform: scale(.94);
-                background: var(--md-sys-surface-container-high);
-                color: var(--md-sys-on-surface);
-            }
-            #closeWidgetBtn:hover { color: #FF8A80; }
-
-            /* Display area breathing room */
+            /* Display area fullscreen */
             .md-display-area {
-                padding: 16px 0 8px;
+                padding: 0;
                 flex: 1 1 auto;
                 min-height: 0;
             }
@@ -657,7 +497,7 @@
         }
     </style>
 </head>
-<body class="overflow-x-hidden font-sans">
+<body class="widget-open overflow-x-hidden font-sans">
 
     <!-- EGG FOUND BANNER POPUP -->
     <div id="eggFoundBanner" class="hidden fixed bottom-24 right-6 z-[100000] cursor-pointer" title="Un uovo!">
@@ -671,58 +511,22 @@
     </div>
 
     <!-- FLOATING TAMAGOTCHI WIDGET CONTAINER -->
-    <div id="tamagotchiWidgetRoot" class="hidden fixed bottom-6 right-6 z-[99999] flex flex-col items-end">
+    <div id="tamagotchiWidgetRoot" class="fixed bottom-6 right-6 z-[99999] flex flex-col items-end">
 
-        <!-- FLOATING ACTION BUTTON / LAUNCHER -->
-        <div class="relative">
-            <!-- Notification Speech Bubble Toast -->
-            <div id="widgetNotificationToast" class="hidden absolute bottom-full right-0 mb-3 bg-pink-600 text-white text-xs font-bold py-1.5 px-3 rounded-xl shadow-2xl border border-pink-400 whitespace-nowrap animate-bounce font-sans flex items-center gap-1.5">
-                <span id="toastIcon">⚠️</span>
-                <span id="toastText">Ho fame!</span>
-                <div class="absolute -bottom-1.5 right-6 w-3 h-3 bg-pink-600 rotate-45 border-r border-b border-pink-400"></div>
-            </div>
-
-            <!-- Achievement Unlock Toast (fisso sullo schermo, visibile sempre) -->
-            <div id="achievementToast" class="hidden fixed top-4 left-1/2 z-[100] bg-[#1f2a08] text-amber-300 text-xs font-bold py-2 px-4 rounded-xl shadow-2xl border-2 border-amber-400 whitespace-nowrap font-mono flex items-center gap-2">
-                <span class="text-base" id="achToastIcon">🏆</span>
-                <span id="achToastText">SBLOCCATO!</span>
-            </div>
-
-            <!-- Floating Toggle Button -->
-            <button id="floatingWidgetBtn" class="floating-pet-btn w-16 h-16 rounded-2xl bg-gradient-to-br from-slate-500 to-slate-600 text-white shadow-2xl border-2 border-slate-300/60 flex items-center justify-center cursor-pointer hover:scale-105 active:scale-95 transition relative">
-                <!-- Mini Pet Pixel Icon Animation / Preview -->
-                <div class="text-2xl select-none text-red-800" id="widgetFloatIcon">🗿</div>
-
-                <!-- NOTIFICATION BADGE -->
-                <div id="widgetBadge" class="hidden badge-bounce absolute -top-2 -right-2 bg-red-500 text-white border-2 border-slate-900 rounded-full text-[10px] font-black min-w-[22px] h-[22px] px-1 flex items-center justify-center shadow-lg">
-                    !
-                </div>
-            </button>
+        <!-- Achievement Unlock Toast (fisso sullo schermo, visibile sempre) -->
+        <div id="achievementToast" class="hidden fixed top-4 left-1/2 z-[200001] bg-[#1f2a08] text-amber-300 text-xs font-bold py-2 px-4 rounded-xl shadow-2xl border-2 border-amber-400 whitespace-nowrap font-mono flex items-center gap-2">
+            <span class="text-base" id="achToastIcon">🏆</span>
+            <span id="achToastText">SBLOCCATO!</span>
         </div>
 
         <!-- WIDGET POPUP WINDOW CONTAINER -->
-        <div id="widgetWindow" class="hidden transition-all duration-300 origin-bottom-right mt-3">
-            <div id="deviceShell" class="md-shell-mobile w-[340px] bg-gradient-to-b from-slate-600 to-slate-700 rounded-3xl p-3 shadow-2xl border-4 border-slate-800 relative flex flex-col">
+        <div id="widgetWindow">
+            <div id="deviceShell" class="md-shell-mobile w-full bg-gradient-to-b from-slate-600 to-slate-700 rounded-3xl p-3 shadow-2xl border-4 border-slate-800 relative flex flex-col">
 
-                <!-- M3 Top AppBar (mobile) / Titlebar legacy (desktop) -->
-                <header id="widgetTitlebar" class="md-appbar flex items-center justify-between px-2 pb-2 text-white">
-                    <div class="md-appbar__title flex items-center gap-1.5">
-                        <span class="md-appbar__leading text-xs" id="titlebarIcon">🗿</span>
-                        <span class="md-appbar__title-text font-bold text-xs italic tracking-wider text-amber-300 font-mono">POCKET PET '96</span>
-                    </div>
-                    <div class="md-appbar__actions flex items-center space-x-1.5">
-                        <button id="titlebarTrophyBtn" class="md-icon-btn titlebar-extra-btn w-6 h-6 rounded-lg bg-amber-800/80 hover:bg-amber-700 text-white text-xs flex items-center justify-center border border-amber-500/40 transition" title="Trofei" aria-label="Trofei">🏆</button>
-                        <button id="titlebarTreeBtn" class="md-icon-btn titlebar-extra-btn w-6 h-6 rounded-lg bg-emerald-800/80 hover:bg-emerald-700 text-white text-xs flex items-center justify-center border border-emerald-500/40 transition" title="Albero Gen" aria-label="Albero Gen">🌳</button>
-                        <button id="settingsBtn" class="md-icon-btn titlebar-extra-btn w-6 h-6 rounded-lg bg-slate-700/80 hover:bg-slate-600 text-white text-xs flex items-center justify-center border border-slate-500/40 transition" title="Impostazioni AI" aria-label="Impostazioni AI">⚙️</button>
-                        <button id="minimizeWidgetBtn" class="md-icon-btn w-6 h-6 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-white text-xs flex items-center justify-center border border-slate-500/40 transition" title="Riduci a icona" aria-label="Riduci a icona">—</button>
-                        <button id="closeWidgetBtn" class="md-icon-btn w-6 h-6 rounded-lg bg-slate-900/80 hover:bg-rose-800 text-white text-xs flex items-center justify-center border border-slate-500/40 transition" title="Chiudi" aria-label="Chiudi">✕</button>
-                    </div>
-                </header>
-
-                <!-- Display area: LCD Bezel Screen Box (INVARIATO, fa parte del display) -->
+                <!-- Display area: LCD Screen Box (fullscreen, senza cornice) -->
                 <main class="md-display-area">
-                <div class="bg-zinc-900 rounded-[14px] p-2.5 border-2 border-zinc-950 shadow-[inset_0_4px_12px_rgba(0,0,0,0.85)] flex flex-col flex-1 min-h-0">
-                    <div class="bg-[#879864] text-[#1f2a08] relative overflow-hidden border border-[#526333] shadow-inner flex flex-col lcd-screen-lines lcd-pixel-corners flex-1 min-h-0">
+                <div class="flex flex-col flex-1 min-h-0">
+                    <div class="bg-[#879864] text-[#1f2a08] relative overflow-hidden flex flex-col lcd-screen-lines flex-1 min-h-0">
 
                         <!-- Unified Header: Gen/Info (no tabs, switching via edge arrows) -->
                         <div class="flex items-center justify-between gap-2 p-1 pl-1.5 pr-2 bg-black/10 border-b border-[#71824f] min-w-0">
@@ -804,20 +608,7 @@
                 </div>
                 </main>
 
-                <!-- A-B-C Action Bar (mobile: FAB M3, niente viti) -->
-                <footer class="md-actionbar">
-                    <div class="tama-key-pad md-fab-row" id="abcPad">
-                        <button class="md-fab tama-key tama-key-arrow" id="btnA" title="Scegli" aria-label="Scegli">◀</button>
-                        <button class="md-fab md-fab--primary tama-key" id="btnB" title="Conferma" aria-label="Conferma">A</button>
-                        <button class="md-fab tama-key tama-key-arrow" id="btnC" title="Scegli" aria-label="Scegli">▶</button>
-                    </div>
-                    <div id="abcHint" class="md-caption text-center text-[9px] font-bold tracking-wider text-amber-200/90 font-mono pb-0.5">◀/▶: SCEGLI · B: CONFERMA</div>
-                </footer>
-
             </div>
-
-            <!-- FAB Shop (mobile): floating azzurro M3 / tasto giallo classico (desktop). Vive FUORI dal deviceShell per non interferire con lo scroll su mobile -->
-            <button id="shopBtn" class="md-fab md-fab--tertiary md-shop-fab tama-key shop-key absolute bottom-4 right-3" title="Shop ($) · S" aria-label="Shop">$</button>
         </div>
     </div>
 
@@ -1363,7 +1154,7 @@ function getUniquePetName() {
                 this.isListening = false;
                 this.userInputSpeech = null;
 
-                this.isOpen = false;
+                this.isOpen = true;
                 this.miniGameActive = false;
                 this.basketX = 130;
                 this.starX = 150;
@@ -1408,49 +1199,36 @@ function getUniquePetName() {
             }
 
             initDOM() {
-                // Floating Widget Controls
-                const floatBtn = document.getElementById('floatingWidgetBtn');
-                const widgetWin = document.getElementById('widgetWindow');
-                const closeBtn = document.getElementById('closeWidgetBtn');
-                const minBtn = document.getElementById('minimizeWidgetBtn');
-
-                const toggleWidget = (show) => {
-                    this.isOpen = show !== undefined ? show : !this.isOpen;
-                    if (this.isOpen) {
-                        widgetWin.classList.remove('hidden');
-                        document.getElementById('widgetNotificationToast').classList.add('hidden');
-                        floatBtn.classList.add('hidden');
-                        if (window.matchMedia('(max-width: 640px)').matches) {
-                            document.body.classList.add('widget-open');
-                        }
-                    } else {
-                        widgetWin.classList.add('hidden');
-                        floatBtn.classList.remove('hidden');
-                        document.body.classList.remove('widget-open');
-                    }
+                document.getElementById('eggFoundBanner').addEventListener('click', () => {
+                    this.hideEggBanner();
                     audio.init();
-                };
+                    audio.playChime();
+                });
 
-                floatBtn.addEventListener('click', () => toggleWidget());
-                minBtn.addEventListener('click', () => toggleWidget(false));
-                closeBtn.addEventListener('click', () => toggleWidget(false));
-
-                document.getElementById('titlebarTrophyBtn').addEventListener('click', () => {
+                // Header tracciatori cliccabili: Shop / Trofei / Albero (al posto dei tasti sotto)
+                ['coinTracker', 'achTracker', 'genTracker'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.style.cursor = 'pointer';
+                });
+                document.getElementById('coinTracker').addEventListener('click', () => this.toggleShop());
+                document.getElementById('achTracker').addEventListener('click', () => {
                     if (this.achScreenOpen) {
                         this.achScreenOpen = false;
                     } else {
                         this.treeScreenOpen = false;
+                        this.shopScreenOpen = false;
                         this.achScreenOpen = true;
                         this.achScreenScroll = 0;
                     }
                     audio.playBeep(500, 'square', 0.06);
                     this.updateUI();
                 });
-                document.getElementById('titlebarTreeBtn').addEventListener('click', () => {
+                document.getElementById('genTracker').addEventListener('click', () => {
                     if (this.treeScreenOpen) {
                         this.treeScreenOpen = false;
                     } else {
                         this.achScreenOpen = false;
+                        this.shopScreenOpen = false;
                         this.treeScreenOpen = true;
                         this.treeScreenScroll = 0;
                     }
@@ -1458,17 +1236,8 @@ function getUniquePetName() {
                     this.updateUI();
                 });
 
-                document.getElementById('eggFoundBanner').addEventListener('click', () => {
-                    this.hideEggBanner();
-                    audio.init();
-                    audio.playChime();
-                    toggleWidget(true);
-                });
-
-                // Classic A-B-C Buttons
-                document.getElementById('btnA').addEventListener('click', () => this.handleABC('A'));
-                document.getElementById('btnB').addEventListener('click', () => this.handleABC('B'));
-                document.getElementById('btnC').addEventListener('click', () => this.handleABC('C'));
+                // Click sul display (canvas): azioni al posto dei tasti A/B/C
+                this.canvas.addEventListener('click', (e) => this.handleCanvasClick(e));
 
                 // Pet navigation: frecce sul bordo destro del canvas
                 document.getElementById('petNavPrev').addEventListener('click', () => this.switchPet(-1));
@@ -1491,9 +1260,7 @@ function getUniquePetName() {
                 this.canvas.addEventListener('touchstart', onCanvasTouchStart, { passive: true });
                 this.canvas.addEventListener('touchend', onCanvasTouchEnd, { passive: true });
 
-                // Shop key ($) e scorciatoia tastiera S
-                document.getElementById('shopBtn').addEventListener('click', () => this.toggleShop());
-
+                // Shop: accesso dal contatore monete nell'header (scorciatoia da tastiera S resta)
                 document.getElementById('modalBtn').addEventListener('click', () => this.closeModal());
 
                 // Keyboard: A/B/C shortcuts + Mini-Game arrows
@@ -1521,7 +1288,7 @@ function getUniquePetName() {
                     e.preventDefault();
                     const rect = this.canvas.getBoundingClientRect();
                     const touch = e.touches[0] || e.changedTouches[0];
-                    const touchX = ((touch.clientX - rect.left) / rect.width) * this.canvas.width;
+                    const touchX = ((touch.clientX - rect.left) / rect.width) * 310;
                     this.basketX = Math.max(10, Math.min(250, touchX - 20));
                 };
 
@@ -1532,7 +1299,7 @@ function getUniquePetName() {
                 const handleMouseMove = (e) => {
                     if (!this.miniGameActive || isModalOpen()) return;
                     const rect = this.canvas.getBoundingClientRect();
-                    const mouseX = ((e.clientX - rect.left) / rect.width) * this.canvas.width;
+                    const mouseX = ((e.clientX - rect.left) / rect.width) * 310;
                     this.basketX = Math.max(10, Math.min(250, mouseX - 20));
                 };
                 document.addEventListener('mousedown', (e) => {
@@ -1579,54 +1346,6 @@ function getUniquePetName() {
             }
 
             updateNotifications() {
-                const badge = document.getElementById('widgetBadge');
-                const toast = document.getElementById('widgetNotificationToast');
-                const toastIcon = document.getElementById('toastIcon');
-                const toastText = document.getElementById('toastText');
-
-                let totalAlerts = 0;
-                let topAlert = null;
-                let topAlertPet = null;
-
-                this.pets.forEach(p => {
-                    const notif = p.getNotification();
-                    if (notif) {
-                        totalAlerts++;
-                        if (!topAlert || notif.level === 'danger') {
-                            topAlert = notif;
-                            topAlertPet = p;
-                        }
-                    }
-                });
-
-                if (totalAlerts > 0 && topAlert) {
-                    badge.classList.remove('hidden');
-                    badge.innerText = topAlert.icon;
-
-                    if (!this.isOpen) {
-                        toast.classList.remove('hidden');
-                        toastIcon.innerText = topAlert.icon;
-
-                        // Testo del toast: AI-first se disponibile, altrimenti standard
-                        if (this.petAI && this.petAI.ready && topAlertPet && topAlertPet.canAct()) {
-                            const key = topAlertPet.id + '|' + topAlert.text;
-                            if (!this.notifAIText.has(key)) {
-                                this.notifAIText.set(key, topAlert.text);
-                                this.petAI.generateNotification(topAlertPet, topAlert)
-                                    .then(text => this.notifAIText.set(key, text))
-                                    .catch(() => {});
-                            }
-                            toastText.innerText = this.notifAIText.get(key);
-                        } else {
-                            toastText.innerText = topAlert.text;
-                        }
-                    } else {
-                        toast.classList.add('hidden');
-                    }
-                } else {
-                    badge.classList.add('hidden');
-                    toast.classList.add('hidden');
-                }
             }
 
             handleABC(btn) {
@@ -2473,7 +2192,7 @@ function getUniquePetName() {
                 }
             }
 
-            drawMenuIcons() {
+            getMenuIconLayout() {
                 const W = this.canvas.width;
                 const vs = this.canvas.height / 180;
                 const spriteScale = Math.max(2, Math.min(6, Math.round(2 * vs), Math.floor((W - 8) / (this.MENU_ITEMS.length * 16))));
@@ -2482,16 +2201,28 @@ function getUniquePetName() {
                 const startX = (W - this.MENU_ITEMS.length * cell) / 2;
                 const y = 5;
                 const hlH = Math.round(icon * 42 / 32);
-
-                this.MENU_ITEMS.forEach((item, i) => {
+                return this.MENU_ITEMS.map((item, i) => {
                     const x = startX + i * cell + (cell - icon) / 2;
-                    const available = this.isMenuActionAvailable(item);
-                    const selected = this.menuOpen && available && i === this.menuIndex;
+                    return {
+                        item, i, x, y,
+                        width: cell,
+                        height: hlH,
+                        icon,
+                        spriteScale,
+                        cell,
+                        available: this.isMenuActionAvailable(item),
+                        selected: this.menuOpen && this.isMenuActionAvailable(item) && i === this.menuIndex
+                    };
+                });
+            }
+
+            drawMenuIcons() {
+                this.getMenuIconLayout().forEach(({ item, x, y, icon, spriteScale, cell, available, selected }) => {
                     const micActive = item === 'MIC' && this.isListening;
 
                     if (selected || micActive) {
                         this.ctx.fillStyle = micActive ? '#dc2626' : '#1f2a08';
-                        this.ctx.fillRect(x - 4, y - 5, cell - 1, hlH);
+                        this.ctx.fillRect(x - 4, y - 5, cell - 1, Math.round(icon * 42 / 32));
                     }
 
                     this.ctx.save();
@@ -2514,13 +2245,136 @@ function getUniquePetName() {
                 });
             }
 
-            renderMiniGame() {
-                this.ctx.fillStyle = '#1f2a08';
-                this.ctx.font = 'bold 15px monospace';
-                this.ctx.fillText(`STELLE: ${this.miniGameScore} / 5`, 10, 20);
+            // Click sul display: traduce le coordinate e agisce in base alla schermata
+            handleCanvasClick(e) {
+                if (!this.isOpen) return;
+                if (!document.getElementById('overlayModal').classList.contains('hidden')) return;
 
-                this.ctx.fillText('★', this.starX, this.starY);
-                this.ctx.fillRect(this.basketX, 140, 40, 10);
+                const rect = this.canvas.getBoundingClientRect();
+                const x = ((e.clientX - rect.left) / rect.width) * this.canvas.width;
+                const y = ((e.clientY - rect.top) / rect.height) * this.canvas.height;
+
+                if (this.miniGameActive) {
+                    if (this.hitCloseZone(x, y)) {
+                        this.miniGameActive = false;
+                        this.showModal("GIOCO INTERROTTO", "Hai abbandonato il minigioco.");
+                    }
+                    return;
+                }
+
+                if (this.shopScreenOpen) { this.handleShopClick(x, y); return; }
+                if (this.achScreenOpen) { this.handleOverlayNavClick(x, y, 'ach'); return; }
+                if (this.treeScreenOpen) { this.handleOverlayNavClick(x, y, 'tree'); return; }
+
+                // Schermata principale: click su un'icona del menu
+                const layout = this.getMenuIconLayout();
+                for (const slot of layout) {
+                    if (x >= slot.x - 4 && x <= slot.x + slot.cell &&
+                        y >= slot.y - 5 && y <= slot.y + slot.height + 5) {
+                        if (slot.available) {
+                            this.menuIndex = slot.i;
+                            this.menuOpen = true;
+                            audio.playBeep(400, 'square', 0.05);
+                            this.handleAction(slot.item);
+                        } else {
+                            audio.playAlert();
+                        }
+                        return;
+                    }
+                }
+            }
+
+            hitCloseZone(x, y) {
+                const hs = this.canvas.width / 310;
+                const vs = this.canvas.height / 180;
+                return x > 282 * hs && y < 20 * vs;
+            }
+
+            handleShopClick(x, y) {
+                const items = this.getShopItems();
+                const rows = 5;
+                const hs = this.canvas.width / 310;
+                const vs = this.canvas.height / 180;
+
+                if (y < 18 * vs) {
+                    if (x > 282 * hs) {
+                        this.shopScreenOpen = false;
+                        audio.playBeep(400, 'square', 0.06);
+                        this.updateUI();
+                    }
+                    return;
+                }
+
+                const rowH = 22 * vs;
+                const startY = 24 * vs;
+                const start = Math.min(Math.max(0, this.shopIndex - rows + 1), Math.max(0, items.length - rows));
+                const row = Math.floor((y - startY) / rowH);
+                if (row < 0 || row >= rows) return;
+                const idx = start + row;
+                const item = items[idx];
+                if (!item) return;
+
+                if (idx === this.shopIndex) {
+                    if (item.type === 'EXIT') {
+                        this.shopScreenOpen = false;
+                        audio.playBeep(400, 'square', 0.06);
+                        this.updateUI();
+                    } else {
+                        this.shopBuy();
+                    }
+                } else {
+                    this.shopIndex = idx;
+                    audio.playBeep(450, 'square', 0.05);
+                }
+            }
+
+            handleOverlayNavClick(x, y, which) {
+                const hs = this.canvas.width / 310;
+                const vs = this.canvas.height / 180;
+                if (y >= 18 * vs) return;
+
+                const xs = x / hs;
+                if (xs >= 240 && xs < 258) {
+                    if (which === 'ach') this.achScreenScroll = Math.max(0, this.achScreenScroll - 1);
+                    else this.treeScreenScroll = Math.max(0, this.treeScreenScroll - 1);
+                    audio.playBeep(350, 'square', 0.05);
+                } else if (xs >= 258 && xs < 280) {
+                    if (which === 'ach') this.achScreenScroll = Math.min(ACHIEVEMENTS.length - 6, this.achScreenScroll + 1);
+                    else this.treeScreenScroll = Math.min(Math.max(0, this.buildTreeRows().length - 6), this.treeScreenScroll + 1);
+                    audio.playBeep(450, 'square', 0.05);
+                } else if (xs >= 280) {
+                    if (which === 'ach') this.achScreenOpen = false;
+                    else this.treeScreenOpen = false;
+                    audio.playBeep(400, 'square', 0.06);
+                    this.updateUI();
+                }
+            }
+
+            renderMiniGame() {
+                const hs = this.canvas.width / 310;
+                const vs = this.canvas.height / 180;
+                this.ctx.fillStyle = '#1f2a08';
+                this.ctx.font = 'bold ' + Math.round(15 * hs) + 'px monospace';
+                this.ctx.fillText(`STELLE: ${this.miniGameScore} / 5`, 10 * hs, 20 * vs);
+
+                this.ctx.font = Math.round(24 * hs) + 'px monospace';
+                this.ctx.fillText('★', this.starX * hs, this.starY * vs);
+                this.ctx.fillRect(this.basketX * hs, 140 * vs, 40 * hs, 10 * vs);
+
+                // Tasto per uscire dal minigioco
+                this.drawOverlayNav(this.canvas.width / 310, this.canvas.height / 180, false);
+            }
+
+            // Disegna ▲/▼ (scroll) e ✕ (chiudi) nell'header delle schermate overlay
+            drawOverlayNav(hs, vs, showScroll) {
+                const c = this.ctx;
+                c.font = 'bold ' + Math.round(13 * hs) + 'px monospace';
+                c.fillStyle = '#879864';
+                if (showScroll) {
+                    c.fillText('▲', 250 * hs, 13 * vs);
+                    c.fillText('▼', 268 * hs, 13 * vs);
+                }
+                c.fillText('✕', 300 * hs, 13 * vs);
             }
 
             // ---- SHOP ----
@@ -2611,18 +2465,20 @@ function getUniquePetName() {
                 const c = this.ctx;
                 const items = this.getShopItems();
                 const rows = 5;
+                const hs = this.canvas.width / 310;
+                const vs = this.canvas.height / 180;
 
                 c.fillStyle = '#1f2a08';
-                c.fillRect(0, 0, this.canvas.width, 18);
+                c.fillRect(0, 0, this.canvas.width, 18 * vs);
                 c.fillStyle = '#879864';
-                c.font = 'bold 13px monospace';
-                c.fillText(`SHOP  $ ${Math.floor(this.coins)}`, 8, 13);
+                c.font = 'bold ' + Math.round(13 * hs) + 'px monospace';
+                c.fillText(`SHOP  $ ${Math.floor(this.coins)}`, 8 * hs, 13 * vs);
                 c.textAlign = 'right';
-                c.fillText(`${this.shopIndex + 1}/${items.length}`, 302, 13);
+                c.fillText(`${this.shopIndex + 1}/${items.length}`, 280 * hs, 13 * vs);
                 c.textAlign = 'left';
 
-                const rowH = 22;
-                const startY = 24;
+                const rowH = 22 * vs;
+                const startY = 24 * vs;
                 const start = Math.min(Math.max(0, this.shopIndex - rows + 1), Math.max(0, items.length - rows));
 
                 for (let i = 0; i < rows; i++) {
@@ -2634,50 +2490,52 @@ function getUniquePetName() {
 
                     if (selected) {
                         c.fillStyle = 'rgba(31,42,8,0.85)';
-                        c.fillRect(0, y - 3, this.canvas.width, rowH - 2);
+                        c.fillRect(0, y - 3 * vs, this.canvas.width, rowH - 2 * vs);
                     }
 
                     c.fillStyle = selected ? '#879864' : 'rgba(31,42,8,0.18)';
-                    c.fillRect(6, y, 16, 16);
+                    c.fillRect(6 * hs, y, 16 * hs, 16 * vs);
                     if (item.sprite) {
-                        this.drawPixelSprite(item.sprite, 6, y, 1,
+                        this.drawPixelSprite(item.sprite, 6 * hs, y, Math.max(1, Math.round(hs)),
                             selected ? '#879864' : '#1f2a08',
                             selected ? '#1f2a08' : '#526333',
                             selected ? '#1f2a08' : '#879864');
                     } else {
-                        c.font = 'bold 13px monospace';
+                        c.font = 'bold ' + Math.round(13 * hs) + 'px monospace';
                         c.fillStyle = selected ? '#879864' : '#1f2a08';
-                        c.fillText('✕', 10, y + 12);
+                        c.fillText('✕', 10 * hs, y + 12 * vs);
                     }
 
                     c.fillStyle = selected ? '#879864' : '#1f2a08';
-                    c.font = 'bold 13px monospace';
-                    c.fillText(item.name, 28, y + 8);
+                    c.font = 'bold ' + Math.round(13 * hs) + 'px monospace';
+                    c.fillText(item.name, 28 * hs, y + 8 * vs);
 
-                    c.font = '10px monospace';
+                    c.font = Math.round(10 * hs) + 'px monospace';
                     let sub = '';
                     if (item.type === 'TOY') {
                         sub = `toy · -${Math.round(TOYS[item.id].bonus * 100)}% calo gioia`;
                     } else if (item.type === 'SNACK') {
                         sub = 'fame +30';
                     } else {
-                        sub = 'B per uscire';
+                        sub = 'Tocca per uscire';
                     }
-                    c.fillText(sub, 28, y + 17);
+                    c.fillText(sub, 28 * hs, y + 17 * vs);
 
-                    c.font = 'bold 12px monospace';
+                    c.font = 'bold ' + Math.round(12 * hs) + 'px monospace';
                     c.textAlign = 'right';
-                    c.fillText(item.type === 'EXIT' ? '⏎' : `$${item.price}`, 302, y + 12);
+                    c.fillText(item.type === 'EXIT' ? '⏎' : `$${item.price}`, 302 * hs, y + 12 * vs);
                     c.textAlign = 'left';
                 }
 
+                this.drawOverlayNav(hs, vs, false);
+
                 if (this.shopFlash) {
                     c.fillStyle = '#1f2a08';
-                    c.fillRect(0, 162, this.canvas.width, 18);
+                    c.fillRect(0, 162 * vs, this.canvas.width, 18 * vs);
                     c.fillStyle = '#879864';
-                    c.font = 'bold 12px monospace';
+                    c.font = 'bold ' + Math.round(12 * hs) + 'px monospace';
                     c.textAlign = 'center';
-                    c.fillText(this.shopFlash.text, this.canvas.width / 2, 154);
+                    c.fillText(this.shopFlash.text, this.canvas.width / 2, 154 * vs);
                     c.textAlign = 'left';
                 }
             }
@@ -2685,17 +2543,17 @@ function getUniquePetName() {
             renderAchievements() {
                 const c = this.ctx;
                 const rows = 6;
+                const hs = this.canvas.width / 310;
+                const vs = this.canvas.height / 180;
 
                 c.fillStyle = '#1f2a08';
-                c.fillRect(0, 0, this.canvas.width, 18);
+                c.fillRect(0, 0, this.canvas.width, 18 * vs);
                 c.fillStyle = '#879864';
-                c.font = 'bold 13px monospace';
-                c.fillText(`TROFEI ${Object.keys(this.achievements.unlocked).length}/${ACHIEVEMENTS.length}`, 8, 13);
-                if (this.achScreenScroll > 0) c.fillText('▲', 272, 13);
-                if (this.achScreenScroll < ACHIEVEMENTS.length - rows) c.fillText('▼', 290, 13);
+                c.font = 'bold ' + Math.round(13 * hs) + 'px monospace';
+                c.fillText(`TROFEI ${Object.keys(this.achievements.unlocked).length}/${ACHIEVEMENTS.length}`, 8 * hs, 13 * vs);
 
-                const rowH = 22;
-                const startY = 24;
+                const rowH = 22 * vs;
+                const startY = 24 * vs;
                 for (let i = 0; i < rows; i++) {
                     const def = ACHIEVEMENTS[this.achScreenScroll + i];
                     if (!def) break;
@@ -2706,30 +2564,32 @@ function getUniquePetName() {
                     if (!unlocked) c.globalAlpha = 0.55;
 
                     c.fillStyle = unlocked ? '#526333' : 'rgba(31,42,8,0.18)';
-                    c.fillRect(6, y, 16, 16);
-                    c.font = '13px monospace';
+                    c.fillRect(6 * hs, y, 16 * hs, 16 * vs);
+                    c.font = Math.round(13 * hs) + 'px monospace';
                     c.fillStyle = '#1f2a08';
-                    c.fillText(unlocked ? def.icon : '🔒', 8, y + 12);
+                    c.fillText(unlocked ? def.icon : '🔒', 8 * hs, y + 12 * vs);
 
-                    c.font = 'bold 13px monospace';
-                    c.fillText(def.title, 28, y + 8);
-                    c.font = '10px monospace';
-                    c.fillText(def.desc, 28, y + 17);
+                    c.font = 'bold ' + Math.round(13 * hs) + 'px monospace';
+                    c.fillText(def.title, 28 * hs, y + 8 * vs);
+                    c.font = Math.round(10 * hs) + 'px monospace';
+                    c.fillText(def.desc, 28 * hs, y + 17 * vs);
 
-                    c.font = 'bold 12px monospace';
+                    c.font = 'bold ' + Math.round(12 * hs) + 'px monospace';
                     c.textAlign = 'right';
                     if (unlocked) {
-                        c.fillText('✓', 302, y + 12);
+                        c.fillText('✓', 302 * hs, y + 12 * vs);
                     } else {
                         const pr = this.achievements.progressFor(def);
-                        c.fillText(`${pr.current}/${pr.target}`, 302, y + 12);
+                        c.fillText(`${pr.current}/${pr.target}`, 302 * hs, y + 12 * vs);
                     }
                     c.textAlign = 'left';
                     c.restore();
 
                     c.fillStyle = 'rgba(31,42,8,0.2)';
-                    c.fillRect(6, y + rowH - 3, 298, 1);
+                    c.fillRect(6 * hs, y + rowH - 3 * vs, 298 * hs, 1 * vs);
                 }
+
+                this.drawOverlayNav(hs, vs, true);
             }
 
             // Snapshot del pet nell'archivio dinastico prima della rimozione
@@ -2782,20 +2642,20 @@ function getUniquePetName() {
                 const visible = 6;
                 const maxScroll = Math.max(0, rows.length - visible);
                 this.treeScreenScroll = Math.min(this.treeScreenScroll, maxScroll);
+                const hs = this.canvas.width / 310;
+                const vs = this.canvas.height / 180;
 
                 const totalPets = this.petHistory.length + this.pets.length;
                 const maxGen = Math.max(1, ...this.petHistory.map(e => e.generation), ...this.pets.map(p => p.generation));
 
                 c.fillStyle = '#1f2a08';
-                c.fillRect(0, 0, this.canvas.width, 18);
+                c.fillRect(0, 0, this.canvas.width, 18 * vs);
                 c.fillStyle = '#879864';
-                c.font = 'bold 13px monospace';
-                c.fillText(`ALBERO GEN MAX ${maxGen} · ${totalPets} PET`, 8, 13);
-                if (this.treeScreenScroll > 0) c.fillText('▲', 272, 13);
-                if (this.treeScreenScroll < maxScroll) c.fillText('▼', 290, 13);
+                c.font = 'bold ' + Math.round(13 * hs) + 'px monospace';
+                c.fillText(`ALBERO GEN MAX ${maxGen} · ${totalPets} PET`, 8 * hs, 13 * vs);
 
-                const rowH = 22;
-                const startY = 24;
+                const rowH = 22 * vs;
+                const startY = 24 * vs;
                 const fateIcon = { ALIVE: '♥', DEPARTED: '✈', DEAD: '✝', EGG: '○' };
 
                 for (let i = 0; i < visible; i++) {
@@ -2805,10 +2665,10 @@ function getUniquePetName() {
 
                     if (row.type === 'gen') {
                         c.fillStyle = 'rgba(31,42,8,0.25)';
-                        c.fillRect(0, y, this.canvas.width, 12);
+                        c.fillRect(0, y, this.canvas.width, 12 * vs);
                         c.fillStyle = '#1f2a08';
-                        c.font = 'bold 12px monospace';
-                        c.fillText(`— GENERAZIONE ${row.gen} —`, 8, y + 9);
+                        c.font = 'bold ' + Math.round(12 * hs) + 'px monospace';
+                        c.fillText(`— GENERAZIONE ${row.gen} —`, 8 * hs, y + 9 * vs);
                         continue;
                     }
 
@@ -2816,26 +2676,28 @@ function getUniquePetName() {
 
                     // Ritratto: uovo se ancora uovo, altrimenti sprite della specie
                     c.fillStyle = 'rgba(31,42,8,0.18)';
-                    c.fillRect(6, y, 16, 16);
+                    c.fillRect(6 * hs, y, 16 * hs, 16 * vs);
                     const sprite = pet.fate === 'EGG' ? this.SPRITES.BREED : (SPECIES[pet.species] || SPECIES.BLOB).sprite;
-                    this.drawPixelSprite(sprite, 6, y, 1);
+                    this.drawPixelSprite(sprite, 6 * hs, y, Math.max(1, Math.round(hs)));
 
                     c.fillStyle = '#1f2a08';
-                    c.font = 'bold 13px monospace';
-                    c.fillText(pet.name, 28, y + 8);
+                    c.font = 'bold ' + Math.round(13 * hs) + 'px monospace';
+                    c.fillText(pet.name, 28 * hs, y + 8 * vs);
 
-                    c.font = 'bold 12px monospace';
+                    c.font = 'bold ' + Math.round(12 * hs) + 'px monospace';
                     c.textAlign = 'right';
-                    c.fillText(`${fateIcon[pet.fate] || '?'} ${pet.fate === 'EGG' ? 'attesa' : formatAge(pet.ageSeconds)}`, 302, y + 8);
+                    c.fillText(`${fateIcon[pet.fate] || '?'} ${pet.fate === 'EGG' ? 'attesa' : formatAge(pet.ageSeconds)}`, 302 * hs, y + 8 * vs);
                     c.textAlign = 'left';
 
-                    c.font = '10px monospace';
+                    c.font = Math.round(10 * hs) + 'px monospace';
                     const origin = pet.parentName ? `di ${pet.parentName}` : 'capostipite';
-                    c.fillText(`${origin} · 🍖${pet.stats.feeds} ⭐${pet.stats.wins} 🧹${pet.stats.cleans} 💉${pet.stats.heals}`, 28, y + 17);
+                    c.fillText(`${origin} · 🍖${pet.stats.feeds} ⭐${pet.stats.wins} 🧹${pet.stats.cleans} 💉${pet.stats.heals}`, 28 * hs, y + 17 * vs);
 
                     c.fillStyle = 'rgba(31,42,8,0.2)';
-                    c.fillRect(6, y + rowH - 3, 298, 1);
+                    c.fillRect(6 * hs, y + rowH - 3 * vs, 298 * hs, 1 * vs);
                 }
+
+                this.drawOverlayNav(hs, vs, true);
             }
 
             checkAchievements() {
@@ -2876,14 +2738,6 @@ function getUniquePetName() {
 
                 document.getElementById('coinTracker').innerText = `🪙 ${Math.floor(this.coins)}`;
 
-                document.getElementById('abcHint').innerText = this.shopScreenOpen
-                    ? '◀/▶: SCEGLI · B: COMPRA'
-                    : this.achScreenOpen || this.treeScreenOpen
-                        ? '◀/▶: SCORRI · B: CHIUDI'
-                        : this.miniGameActive
-                            ? '◀: SINISTRA · ▶: DESTRA · B: ESCI'
-                            : '◀/▶: SCEGLI · A: CONFERMA';
-                
                 const prevBtn = document.getElementById('petNavPrev');
                 const nextBtn = document.getElementById('petNavNext');
                 const isOverlayScreen = this.miniGameActive || this.shopScreenOpen || this.achScreenOpen || this.treeScreenOpen;
@@ -2902,10 +2756,6 @@ function getUniquePetName() {
 
                 document.getElementById('petNameStage').innerText = `${pet.name} · ${pet.stage}`;
                 document.getElementById('genTracker').innerText = `GEN ${pet.generation}`;
-
-                const petIcon = pet.species && SPECIES[pet.species] ? SPECIES[pet.species].emoji : (pet.stage === 'EGG' ? '🥚' : '🗿');
-                document.getElementById('widgetFloatIcon').innerText = petIcon;
-                document.getElementById('titlebarIcon').innerText = petIcon;
 
                 [['barHunger', pet.hunger], ['barHappy', pet.happiness], ['barEnergy', pet.energy], ['barHygiene', pet.hygiene], ['barHealth', pet.health]].forEach(([id, value]) => {
                     const fill = document.getElementById(id);
@@ -2958,13 +2808,6 @@ function getUniquePetName() {
                 this.nextEggAt = Date.now() + delayMs;
 
                 this.hideEggBanner();
-                this.isOpen = false;
-                document.body.classList.remove('widget-open');
-                document.getElementById('widgetWindow').classList.add('hidden');
-                document.getElementById('widgetNotificationToast').classList.add('hidden');
-                document.getElementById('widgetBadge').classList.add('hidden');
-                document.getElementById('floatingWidgetBtn').classList.add('hidden');
-                document.getElementById('tamagotchiWidgetRoot').classList.add('hidden');
 
                 this.eggWaitTimeout = setTimeout(() => this.eggFound(), delayMs);
 
@@ -2981,9 +2824,6 @@ function getUniquePetName() {
                 this.pets = [new Pet({ name: '???', generation: 1 })];
                 this.activePetIndex = 0;
                 this.totalPetsRaised = 1;
-
-                document.getElementById('tamagotchiWidgetRoot').classList.remove('hidden');
-                document.getElementById('floatingWidgetBtn').classList.remove('hidden');
 
                 this.showEggBanner();
 
@@ -3044,8 +2884,6 @@ function getUniquePetName() {
                             // Le memorie vengono caricate dopo l'inizializzazione del PetAI
                             this._pendingMemories = parsed.petMemories || {};
                             this._pendingShortTerm = parsed.petShortTerm || {};
-                            document.getElementById('tamagotchiWidgetRoot').classList.remove('hidden');
-                            document.getElementById('floatingWidgetBtn').classList.remove('hidden');
                         }
                     } catch(e) {
                         this.startEggWaiting();
