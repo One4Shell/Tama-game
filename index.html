@@ -2195,11 +2195,13 @@ function getUniquePetName() {
             getMenuIconLayout() {
                 const W = this.canvas.width;
                 const vs = this.canvas.height / 180;
-                const spriteScale = Math.max(2, Math.min(6, Math.round(2 * vs), Math.floor((W - 8) / (this.MENU_ITEMS.length * 16))));
+                const edgeMargin = 14;
+                const innerW = W - 2 * edgeMargin;
+                const spriteScale = Math.max(2, Math.min(6, Math.round(2 * vs), Math.floor(innerW / (this.MENU_ITEMS.length * 16))));
                 const icon = 16 * spriteScale;
-                const cell = Math.max(icon + 6, Math.floor((W - 8) / this.MENU_ITEMS.length));
-                const startX = (W - this.MENU_ITEMS.length * cell) / 2;
-                const y = 5;
+                const cell = Math.max(icon + 6, Math.floor(innerW / this.MENU_ITEMS.length));
+                const startX = edgeMargin + (innerW - this.MENU_ITEMS.length * cell) / 2;
+                const y = edgeMargin;
                 const hlH = Math.round(icon * 42 / 32);
                 return this.MENU_ITEMS.map((item, i) => {
                     const x = startX + i * cell + (cell - icon) / 2;
