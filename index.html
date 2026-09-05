@@ -1748,7 +1748,8 @@ function getUniquePetName() {
             petScale(pet) {
                 const base = pet.stage === 'BABY' ? 2 : (pet.stage === 'SENIOR' ? 4 : 3);
                 const vs = this.canvas.height / 180;
-                return Math.max(base, Math.round(base * vs));
+                const s = Math.max(base, Math.round(base * vs));
+                return Math.max(1, Math.round(s * 0.7));
             }
 
             update(delta) {
@@ -1883,7 +1884,7 @@ function getUniquePetName() {
                     this.ctx.fillRect(0, 0, W, H);
 
                     this.ctx.fillStyle = '#1f2a08';
-                    this.ctx.font = 'bold ' + Math.round(18 * vs) + 'px monospace';
+                    this.ctx.font = 'bold ' + Math.round(18 * vs * 0.56) + 'px monospace';
                     const zOffset = Math.sin(this.animFrame * 0.1) * 5;
                     this.ctx.fillText('Z z z . .', 200 * hs, 55 * vs + zOffset);
                 }
@@ -2092,7 +2093,7 @@ function getUniquePetName() {
 
             drawEgg(x, y) {
                 const wobble = Math.sin(this.animFrame * 0.2) * 3;
-                const s = Math.max(2, Math.round(3 * (this.canvas.height / 180)));
+                const s = Math.max(1, Math.round(3 * (this.canvas.height / 180) * 0.7));
                 this.drawPixelSprite(this.SPRITES.BREED, x - 8 * s + wobble, y - 8 * s, s);
             }
 
