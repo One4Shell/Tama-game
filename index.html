@@ -1,0 +1,3057 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#334155">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Pocket Pet '96 - Floating Widget</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="importmap">
+        { "imports": { "@mlc-ai/web-llm": "https://esm.run/@mlc-ai/web-llm" } }
+    </script>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        html, body {
+            overscroll-behavior: none;
+        }
+
+        body.widget-open {
+            overflow: hidden;
+        }
+
+        @keyframes widgetPulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 81, 255, 0.7); }
+            70% { transform: scale(1.05); box-shadow: 0 0 0 14px rgba(255, 94, 151, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 94, 151, 0); }
+        }
+
+        @keyframes badgeBounce {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-4px) scale(1.15); }
+        }
+
+        .floating-pet-btn {
+            animation: widgetPulse 3s infinite;
+        }
+
+        .badge-bounce {
+            animation: badgeBounce 0.8s ease-in-out infinite;
+        }
+
+        @keyframes bannerWiggle {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            25% { transform: translateY(-5px) rotate(-1.5deg); }
+            75% { transform: translateY(-5px) rotate(1.5deg); }
+        }
+
+        .egg-banner-wiggle {
+            animation: bannerWiggle 1.2s ease-in-out infinite;
+        }
+
+        @keyframes achPop {
+            0% { transform: translate(-50%, -24px) scale(0.7); opacity: 0; }
+            60% { transform: translate(-50%, 0) scale(1.06); opacity: 1; }
+            100% { transform: translate(-50%, 0) scale(1); opacity: 1; }
+        }
+
+        .achievement-toast-show {
+            animation: achPop 0.35s ease-out;
+        }
+
+        .lcd-screen-lines::after {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background:
+                linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.07) 50%),
+                linear-gradient(90deg, rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.035) 50%);
+            background-size: 100% 3px, 3px 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .lcd-screen-lines::before {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0) 58%, rgba(31, 42, 8, 0.16) 100%);
+            pointer-events: none;
+            z-index: 9;
+        }
+
+        /* ===== PET NAVIGATION ARROWS (left edge of canvas) ===== */
+        .pet-nav-wrap-left {
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 42px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            pointer-events: none;
+            z-index: 15;
+        }
+
+        /* ===== PET NAVIGATION ARROWS (right edge of canvas) ===== */
+        .pet-nav-wrap {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 42px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            pointer-events: none;
+            z-index: 15;
+        }
+
+        .pet-nav {
+            width: 30px;
+            height: 30px;
+            border-radius: 9999px;
+            background: rgba(31, 42, 8, 0.55);
+            border: 2px solid #526333;
+            color: #879864;
+            font-size: 13px;
+            font-weight: 900;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            transition: transform 0.08s ease, background 0.08s ease, color 0.08s ease;
+            pointer-events: auto;
+            touch-action: manipulation;
+            flex-shrink: 0;
+        }
+
+        .pet-nav:hover {
+            background: rgba(31, 42, 8, 0.8);
+            color: #e6eece;
+            transform: scale(1.08);
+        }
+
+        .pet-nav:active {
+            transform: scale(0.92);
+            background: rgba(31, 42, 8, 0.9);
+            color: #e6eece;
+        }
+
+        .pet-nav.hidden {
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .pet-nav.hint-pulse {
+            animation: petNavPulse 1.4s ease-in-out infinite;
+        }
+
+        @keyframes petNavPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Angoli "tagliati" a scala pixel */
+        .lcd-pixel-corners {
+            clip-path: polygon(
+                0 6px, 3px 6px, 3px 3px, 6px 3px, 6px 0,
+                calc(100% - 6px) 0, calc(100% - 6px) 3px, calc(100% - 3px) 3px, calc(100% - 3px) 6px, 100% 6px,
+                100% calc(100% - 6px), calc(100% - 3px) calc(100% - 6px), calc(100% - 3px) calc(100% - 3px), calc(100% - 6px) calc(100% - 3px), calc(100% - 6px) 100%,
+                6px 100%, 6px calc(100% - 3px), 3px calc(100% - 3px), 3px calc(100% - 6px), 0 calc(100% - 6px)
+            );
+        }
+
+        /* ===== ICONE PIXEL 21x21 (box-shadow, colore = currentColor) ===== */
+        .pxicon {
+            width: 21px;
+            height: 21px;
+            position: relative;
+            display: inline-block;
+            flex-shrink: 0;
+            margin-right: 3px;
+        }
+
+        .pxicon::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 1px;
+            height: 1px;
+        }
+
+        .pxicon-health::before {
+            box-shadow: 3px 0 0 1px, 15px 0 0 1px,
+                0 3px 0 1px, 3px 3px 0 1px, 6px 3px 0 1px, 9px 3px 0 1px, 12px 3px 0 1px, 15px 3px 0 1px, 18px 3px 0 1px,
+                0 6px 0 1px, 3px 6px 0 1px, 6px 6px 0 1px, 9px 6px 0 1px, 12px 6px 0 1px, 15px 6px 0 1px, 18px 6px 0 1px,
+                3px 9px 0 1px, 6px 9px 0 1px, 9px 9px 0 1px, 12px 9px 0 1px, 15px 9px 0 1px,
+                6px 12px 0 1px, 9px 12px 0 1px, 12px 12px 0 1px,
+                9px 15px 0 1px;
+        }
+
+        .stat-sprite-icon {
+            width: 22px;
+            height: 22px;
+            flex-shrink: 0;
+            image-rendering: pixelated;
+        }
+
+        /* ===== METER A BLOCCHI LCD ===== */
+        .stat-item {
+            display: grid;
+            grid-template-columns: 24px minmax(0, 1fr); /* icona | barra */
+            column-gap: 5px;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .lcd-meter {
+            position: relative;
+            min-width: 0;
+            height: 12px;
+            background: rgba(31, 42, 8, 0.12);
+            border: 1px solid #1f2a08;
+            border-radius: 2px;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        /* slot vuoti visibili: 10 blocchi sbiaditi (coperti dal fill) */
+        .lcd-meter::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background-image: linear-gradient(90deg, rgba(31, 42, 8, 0.16) 0 74%, transparent 74% 100%);
+            background-size: 10% 100%;
+            background-repeat: repeat-x;
+            pointer-events: none;
+        }
+
+        /* separatori segmenti sopra il fill */
+        .lcd-meter::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background-image: linear-gradient(90deg, rgba(0, 0, 0, 0) 0 76%, #879864 76% 100%);
+            background-size: 10% 100%;
+            background-repeat: repeat-x;
+            pointer-events: none;
+        }
+
+        .lcd-meter-fill {
+            height: 100%;
+            background: linear-gradient(180deg, #2c3d10, #1f2a08);
+            transition: width 0.3s steps(10, end);
+        }
+
+        @keyframes lcdBlink {
+            0%, 50% { opacity: 1; }
+            50.01%, 100% { opacity: 0.12; }
+        }
+
+        .stat-critical .lcd-meter-fill {
+            animation: lcdBlink 0.55s steps(1, end) infinite;
+        }
+
+        /* ===== CLASSIC A-B-C KEYS (Tamagotchi P2) ===== */
+        .tama-key-pad {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            padding: 9px 18px;
+            border-radius: 9999px;
+            background: rgba(15, 23, 42, 0.55);
+            box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.55), inset 0 -1px 1px rgba(255, 255, 255, 0.1);
+        }
+
+        .tama-key {
+            width: 44px;
+            height: 44px;
+            border-radius: 9999px;
+            background: linear-gradient(#ffe9a8, #f2c94c 55%, #e0b53c);
+            color: #7a611a;
+            font-weight: 900;
+            font-size: 15px;
+            letter-spacing: 0.5px;
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
+            box-shadow: 0 5px 0 #a8862a, 0 8px 10px rgba(0, 0, 0, 0.45), inset 0 2px 3px rgba(255, 255, 255, 0.8);
+            transition: transform 0.06s ease, box-shadow 0.06s ease, filter 0.06s ease;
+            cursor: pointer;
+        }
+
+        .tama-key:active, .tama-key.pressed {
+            transform: translateY(4px);
+            filter: brightness(0.93);
+            box-shadow: 0 1px 0 #a8862a, 0 3px 5px rgba(0, 0, 0, 0.4), inset 0 2px 5px rgba(0, 0, 0, 0.25);
+        }
+
+        .tama-key-arrow {
+            font-size: 20px;
+            line-height: 1;
+        }
+
+        /* Tasto SHOP ridotto, in basso a destra */
+        .shop-key {
+            width: 30px;
+            height: 30px;
+            font-size: 14px;
+            box-shadow: 0 3px 0 #a8862a, 0 5px 7px rgba(0, 0, 0, 0.45), inset 0 2px 3px rgba(255, 255, 255, 0.8);
+        }
+
+        .shop-key:active, .shop-key.pressed {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #a8862a, 0 2px 3px rgba(0, 0, 0, 0.4), inset 0 2px 4px rgba(0, 0, 0, 0.25);
+        }
+
+        .tama-screw {
+            width: 9px;
+            height: 9px;
+            border-radius: 9999px;
+            background: radial-gradient(circle at 35% 35%, #cbd5e1, #64748b 75%);
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.6), 0 1px 0 rgba(255, 255, 255, 0.15);
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .tama-screw::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 1px;
+            right: 1px;
+            height: 1.5px;
+            background: rgba(15, 23, 42, 0.85);
+            transform: translateY(-50%) rotate(38deg);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            height: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.1);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #1f2a08;
+            border-radius: 2px;
+        }
+
+        /* ===== MOBILE FULLSCREEN LAYOUT ===== */
+        @media (max-width: 640px) {
+            #tamagotchiWidgetRoot {
+                bottom: max(1.5rem, env(safe-area-inset-bottom));
+                right: 1rem;
+            }
+
+            #eggFoundBanner {
+                left: 1rem;
+                right: 1rem;
+                bottom: calc(6rem + env(safe-area-inset-bottom));
+            }
+
+            #widgetWindow:not(.hidden) {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                margin: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: rgba(2, 6, 23, 0.8);
+                transform-origin: center;
+                z-index: 100001;
+            }
+
+            #deviceShell {
+                width: 100%;
+                max-width: 100%;
+                max-height: 100vh;
+                max-height: 100dvh;
+                overflow-y: auto;
+                justify-content: flex-start;
+                border-radius: 0;
+                border-top: none;
+                border-left: none;
+                border-right: none;
+                padding-top: 0;
+                padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
+                padding-left: calc(0.75rem + env(safe-area-inset-left));
+                padding-right: calc(0.75rem + env(safe-area-inset-right));
+            }
+
+            #deviceShell > * {
+                flex-shrink: 0;
+            }
+
+            #widgetTitlebar {
+                position: sticky;
+                top: 0;
+                z-index: 40;
+                background: #475569;
+                border-bottom: 2px solid #1e293b;
+                margin: 0 calc(-0.75rem - env(safe-area-inset-right)) 0.5rem calc(-0.75rem - env(safe-area-inset-left));
+                padding: 0.25rem 0;
+                padding-top: calc(0.25rem + env(safe-area-inset-top));
+                padding-left: calc(1.25rem + env(safe-area-inset-left));
+                padding-right: calc(1.25rem + env(safe-area-inset-right));
+            }
+
+            #minimizeWidgetBtn, #closeWidgetBtn {
+                width: 2rem;
+                height: 2rem;
+            }
+
+            .titlebar-extra-btn {
+                font-size: 14px;
+                line-height: 1;
+            }
+
+            .tama-key {
+                width: 54px;
+                height: 54px;
+                font-size: 18px;
+            }
+
+            .shop-key {
+                width: 30px;
+                height: 30px;
+                font-size: 14px;
+            }
+
+            .tama-key-pad {
+                gap: 1.5rem;
+                padding: 10px 20px;
+            }
+
+        }
+    </style>
+</head>
+<body class="overflow-x-hidden font-sans">
+
+    <!-- EGG FOUND BANNER POPUP -->
+    <div id="eggFoundBanner" class="hidden fixed bottom-24 right-6 z-[100000] cursor-pointer" title="Un uovo!">
+        <div class="egg-banner-wiggle bg-gradient-to-b from-slate-600 to-slate-700 rounded-2xl p-3 shadow-2xl border-4 border-slate-800 flex items-center gap-3">
+            <div class="w-12 h-12 bg-[#879864] border-2 border-[#526333] rounded-lg flex items-center justify-center text-2xl shadow-inner">🥚</div>
+            <div class="text-white font-mono pr-1">
+                <div class="text-[9px] font-bold italic tracking-wider text-amber-300">POCKET PET '96</div>
+                <div id="eggBannerText" class="text-sm font-bold">Hai trovato un uovo!</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FLOATING TAMAGOTCHI WIDGET CONTAINER -->
+    <div id="tamagotchiWidgetRoot" class="hidden fixed bottom-6 right-6 z-[99999] flex flex-col items-end">
+
+        <!-- FLOATING ACTION BUTTON / LAUNCHER -->
+        <div class="relative">
+            <!-- Notification Speech Bubble Toast -->
+            <div id="widgetNotificationToast" class="hidden absolute bottom-full right-0 mb-3 bg-pink-600 text-white text-xs font-bold py-1.5 px-3 rounded-xl shadow-2xl border border-pink-400 whitespace-nowrap animate-bounce font-sans flex items-center gap-1.5">
+                <span id="toastIcon">⚠️</span>
+                <span id="toastText">Ho fame!</span>
+                <div class="absolute -bottom-1.5 right-6 w-3 h-3 bg-pink-600 rotate-45 border-r border-b border-pink-400"></div>
+            </div>
+
+            <!-- Achievement Unlock Toast (fisso sullo schermo, visibile sempre) -->
+            <div id="achievementToast" class="hidden fixed top-4 left-1/2 z-[100] bg-[#1f2a08] text-amber-300 text-xs font-bold py-2 px-4 rounded-xl shadow-2xl border-2 border-amber-400 whitespace-nowrap font-mono flex items-center gap-2">
+                <span class="text-base" id="achToastIcon">🏆</span>
+                <span id="achToastText">SBLOCCATO!</span>
+            </div>
+
+            <!-- Floating Toggle Button -->
+            <button id="floatingWidgetBtn" class="floating-pet-btn w-16 h-16 rounded-2xl bg-gradient-to-br from-slate-500 to-slate-600 text-white shadow-2xl border-2 border-slate-300/60 flex items-center justify-center cursor-pointer hover:scale-105 active:scale-95 transition relative">
+                <!-- Mini Pet Pixel Icon Animation / Preview -->
+                <div class="text-2xl select-none text-red-800" id="widgetFloatIcon">🗿</div>
+
+                <!-- NOTIFICATION BADGE -->
+                <div id="widgetBadge" class="hidden badge-bounce absolute -top-2 -right-2 bg-red-500 text-white border-2 border-slate-900 rounded-full text-[10px] font-black min-w-[22px] h-[22px] px-1 flex items-center justify-center shadow-lg">
+                    !
+                </div>
+            </button>
+        </div>
+
+        <!-- WIDGET POPUP WINDOW CONTAINER -->
+        <div id="widgetWindow" class="hidden transition-all duration-300 origin-bottom-right mt-3">
+            <div id="deviceShell" class="w-[340px] bg-gradient-to-b from-slate-600 to-slate-700 rounded-3xl p-3 shadow-2xl border-4 border-slate-800 relative flex flex-col">
+                
+                <!-- Window Titlebar with Controls -->
+                <div id="widgetTitlebar" class="flex items-center justify-between px-2 pb-2 text-white">
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-xs" id="titlebarIcon">🗿</span>
+                        <span class="font-bold text-xs italic tracking-wider text-amber-300 font-mono">POCKET PET '96</span>
+                    </div>
+                    <div class="flex items-center space-x-1.5">
+                        <button id="titlebarTrophyBtn" class="titlebar-extra-btn w-6 h-6 rounded-lg bg-amber-800/80 hover:bg-amber-700 text-white text-xs flex items-center justify-center border border-amber-500/40 transition" title="Trofei">
+                            🏆
+                        </button>
+                        <button id="titlebarTreeBtn" class="titlebar-extra-btn w-6 h-6 rounded-lg bg-emerald-800/80 hover:bg-emerald-700 text-white text-xs flex items-center justify-center border border-emerald-500/40 transition" title="Albero Gen">
+                            🌳
+                        </button>
+                        <button id="settingsBtn" class="titlebar-extra-btn w-6 h-6 rounded-lg bg-slate-700/80 hover:bg-slate-600 text-white text-xs flex items-center justify-center border border-slate-500/40 transition" title="Impostazioni AI" aria-label="Impostazioni AI">
+                            ⚙️
+                        </button>
+                        <button id="minimizeWidgetBtn" class="w-6 h-6 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-white text-xs flex items-center justify-center border border-slate-500/40 transition" title="Riduci a icona">
+                            —
+                        </button>
+                        <button id="closeWidgetBtn" class="w-6 h-6 rounded-lg bg-slate-900/80 hover:bg-rose-800 text-white text-xs flex items-center justify-center border border-slate-500/40 transition" title="Chiudi">
+                            ✕
+                        </button>
+                    </div>
+                </div>
+
+                <!-- LCD Bezel Screen Box -->
+                <div class="bg-zinc-900 rounded-[14px] p-2.5 border-2 border-zinc-950 shadow-[inset_0_4px_12px_rgba(0,0,0,0.85)]">
+                    <div class="bg-[#879864] text-[#1f2a08] relative overflow-hidden border border-[#526333] shadow-inner flex flex-col lcd-screen-lines lcd-pixel-corners">
+
+                        <!-- Unified Header: Gen/Info (no tabs, switching via edge arrows) -->
+                        <div class="flex items-center justify-between gap-2 p-1 pl-1.5 pr-2 bg-black/10 border-b border-[#71824f] min-w-0">
+                            <div class="flex items-center gap-1.5 font-mono text-[12px] font-bold whitespace-nowrap" title="Generazione · Pet attivo/totale · Trofei · Monete">
+                                <span id="genTracker">GEN 1</span>
+                                <span class="opacity-40">·</span>
+                                <span id="petCountLabel">1/1</span>
+                                <span class="opacity-40">·</span>
+                                <span id="achTracker" title="Trofei sbloccati">🏆 0/15</span>
+                                <span class="opacity-40">·</span>
+                                <span id="coinTracker" title="Monete">🪙 0</span>
+                            </div>
+                        </div>
+
+                        <!-- Pet Name Label -->
+                        <div class="px-2 py-0.5 bg-black/5 border-b border-dashed border-[#71824f] text-center font-mono text-[12px] font-bold tracking-[0.2em] truncate">
+                            <span id="petNameStage">UOVO</span>
+                        </div>
+
+                        <!-- Canvas Viewport (con overlay frecce per cambio pet) -->
+                        <div class="relative">
+                            <canvas id="gameCanvas" width="310" height="180" class="w-full h-auto aspect-[31/18] block image-pixelated touch-none"></canvas>
+
+                            <!-- Pet Navigation: freccia sinistra a sinistra -->
+                            <div class="pet-nav-wrap-left" id="petNavWrapLeft">
+                                <button id="petNavPrev" class="pet-nav hidden" title="Pet precedente" aria-label="Pet precedente">◀</button>
+                            </div>
+                            <!-- Pet Navigation: freccia destra a destra -->
+                            <div class="pet-nav-wrap" id="petNavWrap">
+                                <button id="petNavNext" class="pet-nav hidden" title="Pet successivo" aria-label="Pet successivo">▶</button>
+                            </div>
+                        </div>
+
+                        <!-- Stats Meter Dashboard (blocchi pixel) -->
+                        <div class="px-2 py-1.5 bg-black/5 border-t border-dashed border-[#71824f] grid grid-cols-2 gap-x-3 gap-y-1.5 font-mono text-[11px] font-bold overflow-hidden">
+                            <div class="stat-item" title="Fame">
+                                <canvas id="iconHunger" width="22" height="22" class="stat-sprite-icon"></canvas>
+                                <div class="lcd-meter"><div class="lcd-meter-fill" id="barHunger" style="width: 50%;"></div></div>
+                            </div>
+                            <div class="stat-item" title="Felicità">
+                                <canvas id="iconHappy" width="22" height="22" class="stat-sprite-icon"></canvas>
+                                <div class="lcd-meter"><div class="lcd-meter-fill" id="barHappy" style="width: 50%;"></div></div>
+                            </div>
+                            <div class="stat-item" title="Energia">
+                                <canvas id="iconEnergy" width="22" height="22" class="stat-sprite-icon"></canvas>
+                                <div class="lcd-meter"><div class="lcd-meter-fill" id="barEnergy" style="width: 50%;"></div></div>
+                            </div>
+                            <div class="stat-item" title="Igiene">
+                                <canvas id="iconHygiene" width="22" height="22" class="stat-sprite-icon"></canvas>
+                                <div class="lcd-meter"><div class="lcd-meter-fill" id="barHygiene" style="width: 50%;"></div></div>
+                            </div>
+                            <div class="stat-item col-span-2" title="Salute">
+                                <span class="pxicon pxicon-health"></span>
+                                <div class="lcd-meter"><div class="lcd-meter-fill" id="barHealth" style="width: 50%;"></div></div>
+                            </div>
+                        </div>
+
+                        <!-- Modal Overlay for Notifications/Alerts -->
+                        <div id="overlayModal" class="hidden absolute inset-0 bg-[#879864]/95 flex flex-col items-center justify-center p-3 text-center z-20">
+                            <h3 id="modalTitle" class="text-xs font-bold uppercase mb-1">AVVISO</h3>
+                            <p id="modalBody" class="text-[11px] leading-tight mb-3">Messaggio avviso</p>
+                            <button id="modalBtn" class="bg-[#1f2a08] text-[#879864] px-3 py-1 text-xs font-bold rounded">OK</button>
+                        </div>
+
+                        <!-- Settings Modal: AI model picker (English labels for tech clarity, Italian title to match the rest of the UI) -->
+                        <div id="settingsModal" class="hidden absolute inset-0 bg-[#879864]/95 flex flex-col items-center justify-center p-3 text-center z-30">
+                            <h3 id="settingsTitle" class="text-xs font-bold uppercase mb-2">Impostazioni AI</h3>
+                            <label for="modelSelect" class="text-[10px] font-bold mb-1 self-start ml-1 uppercase">Modello LLM</label>
+                            <select id="modelSelect" class="w-full text-[11px] p-1 rounded bg-[#1f2a08] text-[#879864] mb-1 font-mono"></select>
+                            <p id="modelVramHint" class="text-[10px] font-bold mb-1 italic">~0.5 GB</p>
+                            <p id="modelStatusHint" class="text-[10px] mb-3 opacity-80"></p>
+                            <div class="flex gap-2">
+                                <button id="settingsReloadBtn" class="bg-[#1f2a08] text-[#879864] px-3 py-1 text-xs font-bold rounded border border-[#526333]">Ricarica</button>
+                                <button id="settingsSaveBtn" class="bg-[#1f2a08] text-[#879864] px-3 py-1 text-xs font-bold rounded">Salva</button>
+                                <button id="settingsCancelBtn" class="bg-[#1f2a08] text-[#879864] px-3 py-1 text-xs font-bold rounded">Annulla</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Classic A-B-C Button Pad -->
+                <div class="flex items-center justify-center gap-3 my-3">
+                    <div class="tama-screw"></div>
+                    <div class="tama-key-pad" id="abcPad">
+                        <button class="tama-key tama-key-arrow" id="btnA" title="Scegli" aria-label="Scegli">◀</button>
+                        <button class="tama-key" id="btnB" title="Conferma" aria-label="Conferma">A</button>
+                        <button class="tama-key tama-key-arrow" id="btnC" title="Scegli" aria-label="Scegli">▶</button>
+                    </div>
+                    <div class="tama-screw"></div>
+                </div>
+                <div id="abcHint" class="text-center text-[9px] font-bold tracking-wider text-amber-200/90 font-mono pb-0.5">◀/▶: SCEGLI · B: CONFERMA</div>
+
+                <!-- Physical SHOP key ($) -->
+                <button id="shopBtn" class="tama-key shop-key absolute bottom-4 right-3" title="Shop ($) · S" aria-label="Shop">$</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ASCII-ART SPRITES: un file per sprite in sprites/ (registrati in window.TAMA_ART) -->
+    <script src="sprites/blob.js"></script>
+    <script src="sprites/kitty.js"></script>
+    <script src="sprites/dino.js"></script>
+    <script src="sprites/monster.js"></script>
+    <script src="sprites/squish.js"></script>
+    <script src="sprites/feed.js"></script>
+    <script src="sprites/play.js"></script>
+    <script src="sprites/clean.js"></script>
+    <script src="sprites/sleep.js"></script>
+    <script src="sprites/heal.js"></script>
+    <script src="sprites/breed.js"></script>
+    <script src="sprites/poop.js"></script>
+    <script src="sprites/tomb.js"></script>
+    <script src="sprites/trophy.js"></script>
+    <script src="sprites/tree.js"></script>
+    <script src="sprites/toy_ball.js"></script>
+    <script src="sprites/toy_bone.js"></script>
+    <script src="sprites/toy_teddy.js"></script>
+    <script src="sprites/toy_robot.js"></script>
+    <script src="sprites/toy_console.js"></script>
+    <script src="sprites/skull.js"></script>
+    <script src="sprites/mic.js"></script>
+
+    <script>
+        class SoundFX {
+            constructor() {
+                this.ctx = null;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            }
+
+            playBeep(freq = 440, type = 'square', duration = 0.1) {
+                if (!this.ctx) return;
+                try {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = type;
+                    osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                    gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + duration);
+                } catch(e) {}
+            }
+
+            playChime() {
+                if (!this.ctx) return;
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, idx) => {
+                    setTimeout(() => this.playBeep(freq, 'square', 0.12), idx * 70);
+                });
+            }
+
+            playAlert() {
+                if (!this.ctx) return;
+                this.playBeep(220, 'sawtooth', 0.15);
+                setTimeout(() => this.playBeep(180, 'sawtooth', 0.2), 140);
+            }
+
+            playHatch() {
+                if (!this.ctx) return;
+                const notes = [261.63, 329.63, 392.00, 523.25, 659.25];
+                notes.forEach((freq, idx) => {
+                    setTimeout(() => this.playBeep(freq, 'triangle', 0.18), idx * 90);
+                });
+            }
+
+            playUnlock() {
+                if (!this.ctx) return;
+                const notes = [392.00, 523.25, 659.25, 783.99, 1046.50, 1318.51];
+                notes.forEach((freq, idx) => {
+                    setTimeout(() => this.playBeep(freq, idx % 2 === 0 ? 'square' : 'triangle', 0.1), idx * 60);
+                });
+            }
+        }
+
+        const audio = new SoundFX();
+
+        // Accesso agli sprite caricati da sprites/*.js, con fallback se un file manca
+        const ART = window.TAMA_ART || {};
+        const DEFAULT_SPRITE = [
+            '................',
+            '..############..',
+            '.#++++++++++++#.',
+            '#++++++++++++++#',
+            '#++++++++++++++#',
+            '#++++++++++++++#',
+            '#++++++++++++++#',
+            '#++++++++++++++#',
+            '#++++++++++++++#',
+            '#++++++++++++++#',
+            '#++++++++++++++#',
+            '#++++++++++++++#',
+            '#++++++++++++++#',
+            '.#++++++++++++#.',
+            '..############..',
+            '................'
+        ];
+        function getArt(key) {
+            const s = ART[key];
+            if (!s) console.warn('Sprite mancante: sprites/' + key.toLowerCase() + '.js');
+            return s || DEFAULT_SPRITE;
+        }
+
+        // 5 specie: ognuna con nome, emoji e sprite pixel-art 16x16 da sprites/
+const SPECIES = {
+  BLOB: {
+    name: 'Blob',
+    emoji: '🫧',
+    themeColor: '#38bdf8',
+    secondaryColor: '#0284c7',
+    sprite: getArt('BLOB')
+  },
+  KITTY: {
+    name: 'Kitty',
+    emoji: '🐱',
+    themeColor: '#f472b6',
+    secondaryColor: '#db2777',
+    sprite: getArt('KITTY')
+  },
+  DINO: {
+    name: 'Dino',
+    emoji: '🦖',
+    themeColor: '#4ade80',
+    secondaryColor: '#16a34a',
+    sprite: getArt('DINO')
+  },
+  monster: {
+    name: 'Monster',
+    emoji: '👻',
+    themeColor: '#facc15',
+    secondaryColor: '#ca8a04',
+    sprite: getArt('MONSTER')
+  },
+  SQUISH: {
+    name: 'Squish',
+    emoji: '💧',
+    themeColor: '#60a5fa',
+    secondaryColor: '#2563eb',
+    sprite: getArt('SQUISH')
+  }
+};
+
+// Nomi possibili per i pet (stile Tamagotchi): ogni pet vivo ne riceve uno diverso
+const PET_NAMES = [
+  'Mochi', 'Bubbles', 'Pixel', 'Ziggy', 'Pebbles', 'Miso', 'Tofu', 'Waffles',
+  'Sprout', 'Noodle', 'Pudding', 'Biscuit', 'Pickle', 'Clover', 'Gumdrop', 'Poppy',
+  'Sunny', 'Blinky', 'Choco', 'Marshy', 'Kiwi', 'Cocoa', 'Peanut', 'Jellybean',
+  'Dumpling', 'Squiggles', 'Muffin', 'Bongo', 'Twinkie', 'Zippo', 'Cinnamon', 'Frito',
+  'Boba', 'Pompon', 'Wiggles', 'Nacho', 'Sprinkles', 'Tater', 'Gizmo', 'Poptart',
+  'Mango', 'Beeper', 'Crumbles', 'Fizz', 'Wobble', 'Truffle', 'Snickers', 'Bambam',
+  'Yoyo', 'Doodle', 'Puffy', 'Chubby', 'Zesty', 'Momo', 'Squeaky', 'Chip', 'Nugget'
+];
+
+function getUniquePetName() {
+  const livingPets = (typeof window !== 'undefined' && window.tamaEngine) ? window.tamaEngine.pets : [];
+  const used = new Set(livingPets.map(p => p.name));
+  const available = PET_NAMES.filter(n => !used.has(n));
+  if (available.length) return available[Math.floor(Math.random() * available.length)];
+  let n = 2, candidate;
+  const base = PET_NAMES[Math.floor(Math.random() * PET_NAMES.length)];
+  do { candidate = base + ' ' + n; n++; } while (used.has(candidate));
+  return candidate;
+}
+
+
+        const DIFFICULTY = .1; // >1 = barre scendono più veloce, <1 = più lento
+
+        // ---- SHOP ----
+        // Toy assegnabili al pet: price in monete, bonus = riduzione calo felicità
+        const TOYS = {
+            BALL:    { name: 'Palla',        price: 60,  bonus: 0.10, sprite: getArt('TOY_BALL') },
+            BONE:    { name: 'Osso',         price: 80,  bonus: 0.15, sprite: getArt('TOY_BONE') },
+            TEDDY:   { name: 'Orsacchiotto', price: 100, bonus: 0.20, sprite: getArt('TOY_TEDDY') },
+            ROBOT:   { name: 'Robot',        price: 160, bonus: 0.25, sprite: getArt('TOY_ROBOT') },
+            CONSOLE: { name: 'Console',      price: 240, bonus: 0.30, sprite: getArt('TOY_CONSOLE') }
+        };
+
+        // Catalogo dello shop: toy non ancora posseduti dal pet attivo + consumabili + uscita
+        // (costruito dinamicamente dal motore: vedi getShopItems)
+
+        // ---- ACHIEVEMENTS ----
+        // Sblocco a contatore (stat, target) oppure a condizione (check(engine)).
+        const ACHIEVEMENTS = [
+            { id: 'HATCH_1',    icon: '🐣',  title: 'È Nato!',             desc: 'Schiuso il primo uovo',              stat: 'hatchedCount',    target: 1 },
+            { id: 'FEED_10',    icon: '🍖',  title: 'Chef Stellato',       desc: 'Dai da mangiare 10 volte',          stat: 'feedsCount',      target: 10 },
+            { id: 'WIN_1',      icon: '⭐',  title: 'Cacciatore di Stelle', desc: 'Vinci il primo minigioco',          stat: 'winsCount',       target: 1 },
+            { id: 'WIN_10',     icon: '🌟',  title: 'Campione',            desc: 'Vinci 10 minigiochi',               stat: 'winsCount',       target: 10 },
+            { id: 'CLEAN_10',   icon: '🧹',  title: 'Mani di Foglia',      desc: 'Pulisci 10 volte',                  stat: 'cleansCount',     target: 10 },
+            { id: 'HEAL_5',     icon: '💉',  title: 'Dottore dei Pet',     desc: 'Cura 5 pet ammalati',               stat: 'healsCount',      target: 5 },
+            { id: 'PERFECT',    icon: '💯',  title: 'Perfezionista',       desc: '5 barre sopra il 95% insieme',
+              check: e => { const p = e.getActivePet(); return !!p && p.canAct() && p.hunger >= 95 && p.happiness >= 95 && p.energy >= 95 && p.hygiene >= 95 && p.health >= 95; } },
+            { id: 'BREED_1',    icon: '🥚',  title: 'Genitore',            desc: 'Deponi il primo uovo',              stat: 'breedsCount',     target: 1 },
+            { id: 'FAMILY_3',   icon: '👪',  title: 'Famiglia Numerosa',   desc: '3 pet vivi allo stesso tempo',
+              check: e => e.pets.filter(p => p.canAct() || p.stage === 'EGG').length >= 3 },
+            { id: 'GEN_3',      icon: '🥉',  title: 'Dinastia',            desc: 'Raggiungi la generazione 3',        stat: 'maxGen',          target: 3 },
+            { id: 'GEN_5',      icon: '👑',  title: 'Casata Reale',        desc: 'Raggiungi la generazione 5',        stat: 'maxGen',          target: 5 },
+            { id: 'SENIOR_1',   icon: '🧙',  title: 'Saggio',              desc: 'Un pet è diventato Anziano',        stat: 'seniorsCount',    target: 1 },
+            { id: 'FAREWELL_1', icon: '🕊️', title: 'Dolce Addio',         desc: 'Un pet è partito felice',           stat: 'departuresCount', target: 1 },
+            { id: 'SPECIES_5',  icon: '🦖',  title: 'Collezionista',       desc: 'Alleva tutte le 5 specie',
+              check: e => e.achievements.stats.speciesSeen.length >= Object.keys(SPECIES).length },
+            { id: 'RAISED_5',   icon: '🐾',  title: 'Allevatore Veterano', desc: '5 pet allevati in totale',          stat: 'totalRaised',     target: 5 }
+        ];
+
+        // Gestione statistiche e sblocchi achievement (persistita nel salvataggio)
+        class Achievements {
+            constructor() {
+                this.stats = {
+                    feedsCount: 0, cleansCount: 0, healsCount: 0, winsCount: 0,
+                    hatchedCount: 0, breedsCount: 0, seniorsCount: 0, departuresCount: 0,
+                    maxGen: 1, totalRaised: 0, speciesSeen: []
+                };
+                this.unlocked = {}; // id -> timestamp sblocco
+            }
+
+            record(event, value) {
+                switch (event) {
+                    case 'FEED': this.stats.feedsCount++; break;
+                    case 'CLEAN': this.stats.cleansCount++; break;
+                    case 'HEAL': this.stats.healsCount++; break;
+                    case 'WIN': this.stats.winsCount++; break;
+                    case 'BREED': this.stats.breedsCount++; break;
+                    case 'SENIOR': this.stats.seniorsCount++; break;
+                    case 'DEPARTED': this.stats.departuresCount++; break;
+                    case 'HATCH':
+                        this.stats.hatchedCount++;
+                        if (value && !this.stats.speciesSeen.includes(value)) this.stats.speciesSeen.push(value);
+                        break;
+                }
+            }
+
+            // Specchia nel gestore le statistiche globali del motore
+            sync(engine) {
+                this.stats.maxGen = Math.max(this.stats.maxGen, engine.highestGen);
+                this.stats.totalRaised = Math.max(this.stats.totalRaised, engine.totalPetsRaised);
+            }
+
+            isUnlocked(def) { return !!this.unlocked[def.id]; }
+
+            progressFor(def) {
+                if (def.stat) {
+                    return { current: Math.min(this.stats[def.stat] || 0, def.target), target: def.target };
+                }
+                return { current: this.isUnlocked(def) ? 1 : 0, target: 1 };
+            }
+
+            check(engine) {
+                const newly = [];
+                ACHIEVEMENTS.forEach(def => {
+                    if (this.unlocked[def.id]) return;
+                    const done = def.stat ? (this.stats[def.stat] || 0) >= def.target : def.check(engine);
+                    if (done) {
+                        this.unlocked[def.id] = Date.now();
+                        newly.push(def);
+                    }
+                });
+                return newly;
+            }
+
+            serialize() { return { stats: this.stats, unlocked: this.unlocked }; }
+
+            deserialize(data) {
+                if (!data) return;
+                if (data.stats) {
+                    const species = Array.isArray(data.stats.speciesSeen) ? data.stats.speciesSeen : [];
+                    Object.assign(this.stats, data.stats, { speciesSeen: species });
+                }
+                if (data.unlocked) this.unlocked = data.unlocked;
+            }
+        }
+
+        // ---- CONFIGURAZIONE GIOCO ----
+        // I range sono in secondi: il valore effettivo è casuale tra min e max
+        const CONFIG = {
+            eggSpawn:  { min: 1, max: 2 },  // attesa prima che appaia un nuovo uovo
+            eggHatch:  { min: 1,  max: 5 },  // tempo di schiusa dell'uovo
+            evolution: {
+                babyToAdult: 30,             // secondi di età: BABY -> ADULT
+                adultToSenior: 80,           // ADULT -> SENIOR
+                seniorToDeparture: 120        // SENIOR -> DEPARTED
+            },
+            breeding: {
+                highCareSeconds: 180,          // secondi di cure ottimali per deporre
+                happinessThreshold: 80,
+                healthThreshold: 80
+            },
+            actions: {
+                feedHunger: 30, feedHealth: 5,
+                playHappiness: 50, playEnergyCost: 15,
+                healHealth: 20
+            },
+            ui: { eggBannerSeconds: 2 }       // durata banner "uovo trovato"
+        };
+
+        // Valore casuale dentro un range { min, max }
+        function randRange(r) { return r.min + Math.random() * (r.max - r.min); }
+
+        // Età compatta per l'albero genealogico: 45s, 12m 30s, 3h 5m, 2g 7h
+        function formatAge(seconds) {
+            const s = Math.max(0, Math.floor(seconds));
+            const d = Math.floor(s / 86400);
+            const h = Math.floor((s % 86400) / 3600);
+            const m = Math.floor((s % 3600) / 60);
+            if (d > 0) return `${d}g ${h}h`;
+            if (h > 0) return `${h}h ${m}m`;
+            if (m > 0) return `${m}m ${s % 60}s`;
+            return `${s}s`;
+        }
+        
+
+
+        class Pet {
+            constructor(data = {}) {
+                this.id = data.id || 'pet_' + Date.now() + '_' + Math.floor(Math.random()*1000);
+                this.name = data.name || 'Tama';
+                this.stage = data.stage || 'EGG'; // EGG, BABY, ADULT, SENIOR, DEPARTED, DEAD
+                this.generation = data.generation || 1;
+                
+                this.hunger = data.hunger !== undefined ? data.hunger : 80;
+                this.happiness = data.happiness !== undefined ? data.happiness : 80;
+                this.energy = data.energy !== undefined ? data.energy : 100;
+                this.hygiene = data.hygiene !== undefined ? data.hygiene : 100;
+                this.health = data.health !== undefined ? data.health : 100;
+
+                this.isSleeping = data.isSleeping || false;
+                this.isSick = data.isSick || false;
+                this.poopCount = data.poopCount || 0;
+                
+                this.ageSeconds = data.ageSeconds || 0;
+                this.eggTimer = data.eggTimer !== undefined ? data.eggTimer : randRange(CONFIG.eggHatch);
+                this.highCareTimer = data.highCareTimer || 0;
+                this.canLayEgg = data.canLayEgg || false;
+                
+                this.decayModifier = data.decayModifier || 1.0;
+
+                this.species = data.species || null;
+                this.parentId = data.parentId || null;
+                this.parentName = data.parentName || null;
+                this.bornAt = data.bornAt || Date.now();
+                this.careStats = data.careStats || { feeds: 0, wins: 0, cleans: 0, heals: 0 };
+                this.toys = Array.isArray(data.toys) ? data.toys.slice() : [];
+                this.justHatched = false;
+                this.justLaidEgg = false;
+                this.justGotSick = false;
+                if (!this.species && this.stage !== 'EGG') {
+                    this.assignRandomSpecies();
+                }
+            }
+
+            // Riduzione del calo felicità data dai toy assegnati (somma, cap 60%)
+            toyBonus() {
+                const sum = (this.toys || []).reduce((acc, id) => acc + (TOYS[id] ? TOYS[id].bonus : 0), 0);
+                return Math.min(0.60, sum);
+            }
+
+            assignRandomSpecies() {
+                const keys = Object.keys(SPECIES);
+                this.species = keys[Math.floor(Math.random() * keys.length)];
+                this.name = getUniquePetName();
+            }
+
+            update(deltaSeconds) {
+                if (this.stage === 'DEAD' || this.stage === 'DEPARTED') return;
+
+                if (this.stage === 'EGG') {
+                    this.eggTimer -= deltaSeconds;
+                    if (this.eggTimer <= 0) {
+                        this.stage = 'BABY';
+                        if (!this.species) this.assignRandomSpecies();
+                        this.justHatched = true;
+                        audio.playHatch();
+                    }
+                    return;
+                }
+
+                this.ageSeconds += deltaSeconds;
+
+                if (this.stage === 'BABY' && this.ageSeconds > CONFIG.evolution.babyToAdult) {
+                    this.stage = 'ADULT';
+                    audio.playChime();
+                } else if (this.stage === 'ADULT' && this.ageSeconds > CONFIG.evolution.adultToSenior) {
+                    this.stage = 'SENIOR';
+                } else if (this.stage === 'SENIOR' && this.ageSeconds > CONFIG.evolution.seniorToDeparture) {
+                    this.stage = 'DEPARTED';
+                    return;
+                }
+
+                const rate = this.decayModifier * DIFFICULTY * deltaSeconds;
+                
+                if (this.isSleeping) {
+                    this.energy = Math.min(100, this.energy + 5 * deltaSeconds);
+                    this.hunger = Math.max(0, this.hunger - 0.25 * rate);
+                } else {
+                    this.hunger = Math.max(0, this.hunger - 0.85 * rate);
+                    this.happiness = Math.max(0, this.happiness - 0.65 * rate * (1 - this.toyBonus()));
+                    this.energy = Math.max(0, this.energy - 0.45 * rate);
+                }
+
+                this.hygiene = Math.max(0, this.hygiene - 0.5 * rate);
+                if (this.hygiene < 50 && this.poopCount === 0) {
+                    this.poopCount = 1;
+                }
+                if (this.hygiene < 20 && this.poopCount === 1) {
+                    this.poopCount = 2;
+                }
+
+                if (!this.isSick) {
+                    if (this.hygiene < 30 || this.hunger < 20 || this.happiness < 20) {
+                        if (Math.random() < 0.05 * deltaSeconds) {
+                            this.isSick = true;
+                            this.justGotSick = true;
+                            audio.playAlert();
+                        }
+                    }
+                }
+
+                if (this.hunger === 0 || this.isSick || this.poopCount >= 2) {
+                    this.health = Math.max(0, this.health - 1.5 * deltaSeconds);
+                } else if (this.hunger > 70 && this.happiness > 70 && !this.isSick) {
+                    this.health = Math.min(100, this.health + 0.5 * deltaSeconds);
+                }
+
+                if (this.health <= 0) {
+                    this.stage = 'DEAD';
+                    audio.playAlert();
+                }
+
+                if (this.stage === 'ADULT' && this.happiness >= CONFIG.breeding.happinessThreshold && this.health >= CONFIG.breeding.healthThreshold) {
+                    this.highCareTimer += deltaSeconds;
+                    if (this.highCareTimer >= CONFIG.breeding.highCareSeconds) {
+                        this.canLayEgg = true;
+                        this.justLaidEgg = true;
+                    }
+                } else {
+                    this.highCareTimer = 0;
+                }
+            }
+
+            // Get current active alert for notification floating badge
+            getNotification() {
+                if (this.stage === 'DEAD') return { icon: '☠️', text: 'Deceduto!', level: 'danger' };
+                if (this.isSick) return { icon: '💉', text: 'Ammalato!', level: 'danger' };
+                if (this.hunger < 30) return { icon: '🍖', text: 'Ho fame!', level: 'warning' };
+                if (this.poopCount > 0) return { icon: '💩', text: 'Pulisci!', level: 'warning' };
+                if (this.happiness < 30) return { icon: '😢', text: 'Triste!', level: 'warning' };
+                return null;
+            }
+
+            canAct() {
+                return this.stage !== 'EGG' && this.stage !== 'DEAD' && this.stage !== 'DEPARTED';
+            }
+
+            canFeed() { return this.canAct() && !this.isSleeping; }
+            canPlay() { return this.canFeed() && this.energy >= 15; }
+            canClean() { return this.canFeed(); }
+            canSleep() { return this.canAct(); }
+            canHeal() { return this.canFeed() && this.isSick; }
+
+            feed() {
+                if (!this.canFeed()) return false;
+                this.hunger = Math.min(100, this.hunger + CONFIG.actions.feedHunger);
+                this.health = Math.min(100, this.health + CONFIG.actions.feedHealth);
+                audio.playBeep(600, 'square', 0.1);
+                return true;
+            }
+
+            play() {
+                if (!this.canPlay()) return false;
+                this.happiness = Math.min(100, this.happiness + CONFIG.actions.playHappiness);
+                this.energy = Math.max(0, this.energy - CONFIG.actions.playEnergyCost);
+                audio.playBeep(800, 'triangle', 0.1);
+                return true;
+            }
+
+            clean() {
+                if (!this.canClean()) return false;
+                this.poopCount = 0;
+                this.hygiene = 100;
+                audio.playBeep(500, 'sine', 0.15);
+                return true;
+            }
+
+            toggleSleep() {
+                if (!this.canSleep()) return false;
+                this.isSleeping = !this.isSleeping;
+                audio.playBeep(300, 'square', 0.1);
+                return true;
+            }
+
+            heal() {
+                if (!this.canHeal()) return false;
+                this.isSick = false;
+                this.health = Math.min(100, this.health + CONFIG.actions.healHealth);
+                audio.playChime();
+                return true;
+            }
+        }
+
+        class WidgetEngine {
+            constructor() {
+                this.canvas = document.getElementById('gameCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                
+                this.pets = [];
+                this.activePetIndex = 0;
+                this.totalPetsRaised = 0;
+                this.highestGen = 1;
+                this.achievements = new Achievements();
+                this.seniorSeenIds = new Set();
+                this.achScreenOpen = false;
+                this.achScreenScroll = 0;
+                this.treeScreenOpen = false;
+                this.treeScreenScroll = 0;
+                this.coins = 0;
+                this.shopScreenOpen = false;
+                this.shopIndex = 0;
+                this.shopFlash = null;
+                this.petHistory = []; // archivio della dinastia (pet partiti/morti)
+                this.achToastTimeout = null;
+
+                this.petAI = null;
+                this.petSpeech = null;
+                this.speechOpacity = 0;
+                this.speechTimer = 0;
+                this.speechFadeDuration = 60;
+                this.speechShowDuration = 480;
+                this.speechGenerating = false;
+                this.speechToken = 0;
+                this.notifAIText = new Map();
+
+                this.speechRecognizer = null;
+                this.petSynth = null;
+                this.isListening = false;
+                this.userInputSpeech = null;
+
+                this.isOpen = false;
+                this.miniGameActive = false;
+                this.basketX = 130;
+                this.starX = 150;
+                this.starY = 0;
+                this.starSpeed = 2.2;
+                this.miniGameScore = 0;
+
+                this.lastTime = performance.now();
+                this.animFrame = 0;
+                this.actionAnimation = null;
+                this.actionAnimTimer = 0;
+
+                this.MENU_ITEMS = ['MIC', 'FEED', 'PLAY', 'CLEAN', 'SLEEP', 'HEAL'];
+                this.menuOpen = false;
+                this.menuIndex = 0;
+
+                // Pixel-art sprite maps caricate da sprites/ ('.'=vuoto, '#'=scuro, '+'=tonalità media, '-'=tono chiaro)
+                this.SPRITES = {
+                    MIC: getArt('MIC'),
+                    FEED: getArt('FEED'),
+                    PLAY: getArt('PLAY'),
+                    CLEAN: getArt('CLEAN'),
+                    SLEEP: getArt('SLEEP'),
+                    HEAL: getArt('HEAL'),
+                    BREED: getArt('BREED'),
+                    POOP: getArt('POOP'),
+                    TOMB: getArt('TOMB'),
+                    TROPHY: getArt('TROPHY'),
+                    TREE: getArt('TREE'),
+                    SKULL: getArt('SKULL')
+                };
+
+                this.isWaitingEgg = false;
+                this.nextEggAt = null;
+                this.eggWaitTimeout = null;
+                this.eggBannerTimeout = null;
+
+                this.initDOM();
+                this.loadGame();
+                this.drawStatIcons();
+                this.setupLoop();
+            }
+
+            initDOM() {
+                // Floating Widget Controls
+                const floatBtn = document.getElementById('floatingWidgetBtn');
+                const widgetWin = document.getElementById('widgetWindow');
+                const closeBtn = document.getElementById('closeWidgetBtn');
+                const minBtn = document.getElementById('minimizeWidgetBtn');
+
+                const toggleWidget = (show) => {
+                    this.isOpen = show !== undefined ? show : !this.isOpen;
+                    if (this.isOpen) {
+                        widgetWin.classList.remove('hidden');
+                        document.getElementById('widgetNotificationToast').classList.add('hidden');
+                        floatBtn.classList.add('hidden');
+                        if (window.matchMedia('(max-width: 640px)').matches) {
+                            document.body.classList.add('widget-open');
+                        }
+                    } else {
+                        widgetWin.classList.add('hidden');
+                        floatBtn.classList.remove('hidden');
+                        document.body.classList.remove('widget-open');
+                    }
+                    audio.init();
+                };
+
+                floatBtn.addEventListener('click', () => toggleWidget());
+                minBtn.addEventListener('click', () => toggleWidget(false));
+                closeBtn.addEventListener('click', () => toggleWidget(false));
+
+                document.getElementById('titlebarTrophyBtn').addEventListener('click', () => {
+                    if (this.achScreenOpen) {
+                        this.achScreenOpen = false;
+                    } else {
+                        this.treeScreenOpen = false;
+                        this.achScreenOpen = true;
+                        this.achScreenScroll = 0;
+                    }
+                    audio.playBeep(500, 'square', 0.06);
+                    this.updateUI();
+                });
+                document.getElementById('titlebarTreeBtn').addEventListener('click', () => {
+                    if (this.treeScreenOpen) {
+                        this.treeScreenOpen = false;
+                    } else {
+                        this.achScreenOpen = false;
+                        this.treeScreenOpen = true;
+                        this.treeScreenScroll = 0;
+                    }
+                    audio.playBeep(500, 'square', 0.06);
+                    this.updateUI();
+                });
+
+                document.getElementById('eggFoundBanner').addEventListener('click', () => {
+                    this.hideEggBanner();
+                    audio.init();
+                    audio.playChime();
+                    toggleWidget(true);
+                });
+
+                // Classic A-B-C Buttons
+                document.getElementById('btnA').addEventListener('click', () => this.handleABC('A'));
+                document.getElementById('btnB').addEventListener('click', () => this.handleABC('B'));
+                document.getElementById('btnC').addEventListener('click', () => this.handleABC('C'));
+
+                // Pet navigation: frecce sul bordo destro del canvas
+                document.getElementById('petNavPrev').addEventListener('click', () => this.switchPet(-1));
+                document.getElementById('petNavNext').addEventListener('click', () => this.switchPet(1));
+
+                // Swipe sul canvas per cambiare pet (sinistra -> avanti, destra -> indietro)
+                let swipeStartX = null;
+                const onCanvasTouchStart = (e) => {
+                    if (this.miniGameActive || this.shopScreenOpen || this.achScreenOpen || this.treeScreenOpen) return;
+                    if (!document.getElementById('overlayModal').classList.contains('hidden')) return;
+                    swipeStartX = e.touches[0].clientX;
+                };
+                const onCanvasTouchEnd = (e) => {
+                    if (swipeStartX === null) return;
+                    const dx = e.changedTouches[0].clientX - swipeStartX;
+                    swipeStartX = null;
+                    if (Math.abs(dx) < 30) return;
+                    this.switchPet(dx < 0 ? 1 : -1);
+                };
+                this.canvas.addEventListener('touchstart', onCanvasTouchStart, { passive: true });
+                this.canvas.addEventListener('touchend', onCanvasTouchEnd, { passive: true });
+
+                // Shop key ($) e scorciatoia tastiera S
+                document.getElementById('shopBtn').addEventListener('click', () => this.toggleShop());
+
+                document.getElementById('modalBtn').addEventListener('click', () => this.closeModal());
+
+                // Keyboard: A/B/C shortcuts + Mini-Game arrows
+                window.addEventListener('keydown', (e) => {
+                    if (!this.isOpen) return;
+                    if (this.miniGameActive) {
+                        if (e.key === 'ArrowLeft') this.basketX = Math.max(10, this.basketX - 25);
+                        if (e.key === 'ArrowRight') this.basketX = Math.min(250, this.basketX + 25);
+                        return;
+                    }
+                    const k = e.key.toLowerCase();
+                    if (k === 's') {
+                        this.toggleShop();
+                        return;
+                    }
+                    if (k === 'a') this.handleABC('A');
+                    else if (k === 'b') this.handleABC('B');
+                    else if (k === 'c') this.handleABC('C');
+                });
+
+                const isModalOpen = () => !document.getElementById('overlayModal').classList.contains('hidden');
+
+                const handleTouchMove = (e) => {
+                    if (!this.miniGameActive || isModalOpen()) return;
+                    e.preventDefault();
+                    const rect = this.canvas.getBoundingClientRect();
+                    const touch = e.touches[0] || e.changedTouches[0];
+                    const touchX = ((touch.clientX - rect.left) / rect.width) * this.canvas.width;
+                    this.basketX = Math.max(10, Math.min(250, touchX - 20));
+                };
+
+                document.addEventListener('touchstart', handleTouchMove, { passive: false });
+                document.addEventListener('touchmove', handleTouchMove, { passive: false });
+
+                let mouseDown = false;
+                const handleMouseMove = (e) => {
+                    if (!this.miniGameActive || isModalOpen()) return;
+                    const rect = this.canvas.getBoundingClientRect();
+                    const mouseX = ((e.clientX - rect.left) / rect.width) * this.canvas.width;
+                    this.basketX = Math.max(10, Math.min(250, mouseX - 20));
+                };
+                document.addEventListener('mousedown', (e) => {
+                    if (!this.miniGameActive || isModalOpen()) return;
+                    mouseDown = true;
+                    handleMouseMove(e);
+                });
+                document.addEventListener('mousemove', (e) => {
+                    if (!mouseDown) return;
+                    handleMouseMove(e);
+                });
+                document.addEventListener('mouseup', () => { mouseDown = false; });
+
+                document.body.addEventListener('touchstart', () => audio.init(), { once: true });
+                document.body.addEventListener('click', () => audio.init(), { once: true });
+            }
+
+            getActivePet() {
+                return this.pets[this.activePetIndex] || null;
+            }
+
+            switchPet(dir) {
+                if (this.miniGameActive || this.shopScreenOpen || this.achScreenOpen || this.treeScreenOpen) return;
+                if (!document.getElementById('overlayModal').classList.contains('hidden')) return;
+                const newIndex = this.activePetIndex + dir;
+                if (newIndex < 0 || newIndex >= this.pets.length) return;
+                this.activePetIndex = newIndex;
+                this.menuOpen = false;
+                this.applyPetVoice();
+                audio.playBeep(500, 'sine', 0.05);
+
+                // Show the new pet's speech
+                if (this.petAI) {
+                    const newPet = this.getActivePet();
+                    if (newPet && newPet.canAct()) {
+                        this.startLiveSpeech(newPet, {
+                            event: { type: 'SWITCH', detail: 'The user just came over to see me. Greet them warmly, ask how their day is going, and share a passing thought about what I was doing.' }
+                        });
+                    }
+                }
+
+                this.updateUI();
+                this.saveGame();
+            }
+
+            updateNotifications() {
+                const badge = document.getElementById('widgetBadge');
+                const toast = document.getElementById('widgetNotificationToast');
+                const toastIcon = document.getElementById('toastIcon');
+                const toastText = document.getElementById('toastText');
+
+                let totalAlerts = 0;
+                let topAlert = null;
+                let topAlertPet = null;
+
+                this.pets.forEach(p => {
+                    const notif = p.getNotification();
+                    if (notif) {
+                        totalAlerts++;
+                        if (!topAlert || notif.level === 'danger') {
+                            topAlert = notif;
+                            topAlertPet = p;
+                        }
+                    }
+                });
+
+                if (totalAlerts > 0 && topAlert) {
+                    badge.classList.remove('hidden');
+                    badge.innerText = topAlert.icon;
+
+                    if (!this.isOpen) {
+                        toast.classList.remove('hidden');
+                        toastIcon.innerText = topAlert.icon;
+
+                        // Testo del toast: AI-first se disponibile, altrimenti standard
+                        if (this.petAI && this.petAI.ready && topAlertPet && topAlertPet.canAct()) {
+                            const key = topAlertPet.id + '|' + topAlert.text;
+                            if (!this.notifAIText.has(key)) {
+                                this.notifAIText.set(key, topAlert.text);
+                                this.petAI.generateNotification(topAlertPet, topAlert)
+                                    .then(text => this.notifAIText.set(key, text))
+                                    .catch(() => {});
+                            }
+                            toastText.innerText = this.notifAIText.get(key);
+                        } else {
+                            toastText.innerText = topAlert.text;
+                        }
+                    } else {
+                        toast.classList.add('hidden');
+                    }
+                } else {
+                    badge.classList.add('hidden');
+                    toast.classList.add('hidden');
+                }
+            }
+
+            handleABC(btn) {
+                if (!document.getElementById('overlayModal').classList.contains('hidden')) {
+                    if (btn === 'B') {
+                        audio.playBeep(600, 'square', 0.06);
+                        this.closeModal();
+                    }
+                    return;
+                }
+
+                if (this.miniGameActive) {
+                    if (btn === 'A') {
+                        this.basketX = Math.max(10, this.basketX - 30);
+                        audio.playBeep(350, 'square', 0.04);
+                    } else if (btn === 'C') {
+                        this.basketX = Math.min(250, this.basketX + 30);
+                        audio.playBeep(350, 'square', 0.04);
+                    } else {
+                        this.miniGameActive = false;
+                        this.showModal("GIOCO INTERROTTO", "Hai abbandonato il minigioco.");
+                    }
+                    return;
+                }
+
+                if (this.achScreenOpen) {
+                    if (btn === 'A') {
+                        this.achScreenScroll = Math.max(0, this.achScreenScroll - 1);
+                        audio.playBeep(350, 'square', 0.05);
+                    } else if (btn === 'C') {
+                        this.achScreenScroll = Math.min(ACHIEVEMENTS.length - 6, this.achScreenScroll + 1);
+                        audio.playBeep(450, 'square', 0.05);
+                    } else {
+                        this.achScreenOpen = false;
+                        audio.playBeep(400, 'square', 0.06);
+                    }
+                    return;
+                }
+
+                if (this.treeScreenOpen) {
+                    if (btn === 'A') {
+                        this.treeScreenScroll = Math.max(0, this.treeScreenScroll - 1);
+                        audio.playBeep(350, 'square', 0.05);
+                    } else if (btn === 'C') {
+                        const maxScroll = Math.max(0, this.buildTreeRows().length - 6);
+                        this.treeScreenScroll = Math.min(maxScroll, this.treeScreenScroll + 1);
+                        audio.playBeep(450, 'square', 0.05);
+                    } else {
+                        this.treeScreenOpen = false;
+                        audio.playBeep(400, 'square', 0.06);
+                    }
+                    return;
+                }
+
+                if (this.shopScreenOpen) {
+                    if (btn === 'A') {
+                        this.shopIndex = Math.max(0, this.shopIndex - 1);
+                        audio.playBeep(350, 'square', 0.05);
+                    } else if (btn === 'C') {
+                        this.shopIndex = Math.min(this.getShopItems().length - 1, this.shopIndex + 1);
+                        audio.playBeep(450, 'square', 0.05);
+                    } else {
+                        this.shopBuy();
+                    }
+                    return;
+                }
+
+                if (btn === 'C' || btn === 'A') {
+                    if (!this.menuOpen) this.menuOpen = true;
+                    if (this.moveMenuIndex(btn === 'C' ? 1 : -1)) {
+                        audio.playBeep(400, 'square', 0.05);
+                    }
+                    return;
+                }
+
+                // B: conferma
+                if (!this.menuOpen) {
+                    this.menuOpen = true;
+                    audio.playBeep(400, 'square', 0.05);
+                    return;
+                }
+
+                const action = this.MENU_ITEMS[this.menuIndex];
+                this.handleAction(action);
+            }
+
+            handleAction(action) {
+                const pet = this.getActivePet();
+                if (!pet) return;
+
+                if (this.miniGameActive) return;
+
+                if (!this.isMenuActionAvailable(action)) return;
+
+                if (pet.isSleeping && action !== 'SLEEP' && action !== 'MIC') {
+                    this.showModal("STA DORMENDO", "Il pet sta dormendo! Sveglialo prima di fare altre azioni.");
+                    return;
+                }
+
+                switch (action) {
+                    case 'MIC':
+                        this.toggleMic();
+                        break;
+                    case 'FEED':
+                        if (pet.feed()) {
+                            pet.careStats.feeds++;
+                            this.triggerAnimation('FEED');
+                            this.achievements.record('FEED');
+                        }
+                        break;
+                    case 'PLAY':
+                        if (pet.canPlay()) {
+                            this.startMiniGame();
+                        } else {
+                            this.showModal("IMPOSSIBILE GIOCARE", "Il pet è un uovo oppure non ha abbastanza energia!");
+                        }
+                        break;
+                    case 'CLEAN':
+                        if (pet.clean()) {
+                            pet.careStats.cleans++;
+                            this.triggerAnimation('CLEAN');
+                            this.achievements.record('CLEAN');
+                        }
+                        break;
+                    case 'SLEEP':
+                        pet.toggleSleep();
+                        break;
+                    case 'HEAL':
+                        if (this.coins < 80) {
+                            this.showModal("MONETE INSUFFICIENTI", "Servono 80 monete per curare!");
+                            break;
+                        }
+                        if (pet.heal()) {
+                            this.coins -= 80;
+                            pet.careStats.heals++;
+                            this.achievements.record('HEAL');
+                        } else {
+                            this.showModal("IN SALUTE", "Il tuo pet non è ammalato!");
+                        }
+                        break;
+                }
+
+                // Trigger AI speech dopo un'azione
+                if (this.petAI && pet.canAct()) {
+                    const evt = this.speechEventForAction(action, pet);
+                    if (evt) {
+                        this.startLiveSpeech(pet, { event: evt });
+                    }
+                }
+
+                this.saveGame();
+                this.checkAchievements();
+                this.updateUI();
+            }
+
+            toggleMic() {
+                const recognizer = this.speechRecognizer;
+                if (!recognizer || !recognizer.isSupported()) {
+                    const reason = recognizer ? recognizer.unsupportedReason : null;
+                    const msg = reason === 'brave'
+                        ? '🗣️ Riconoscimento vocale non disponibile in Brave — usa Chrome o Edge'
+                        : 'Riconoscimento vocale non supportato';
+                    this.petSpeech = msg;
+                    this.speechTimer = 300;
+                    this.speechOpacity = 0;
+                    return;
+                }
+                if (this.isListening) {
+                    recognizer.stop();
+                    return;
+                }
+                if (this.petSynth) this.petSynth.stop();
+                this.isListening = true;
+                recognizer.start();
+            }
+
+            speechEventForAction(action, pet) {
+                switch (action) {
+                    case 'FEED':
+                        return { type: 'FEED', detail: 'The user just fed me. React to the meal in a short line: thank them, comment on the taste, or ask for more in character.' };
+                    case 'CLEAN':
+                        return { type: 'CLEAN', detail: 'The user just cleaned me and made me fresh. Sound relieved and grateful, and comment on how good it feels in a short line.' };
+                    case 'HEAL':
+                        return { type: 'HEAL', detail: 'The user just healed me and I feel so much better. Sound grateful and reassured, like a pet who was saved, in a short line.' };
+                    case 'SLEEP':
+                        // Se il pet sta andando a dormire il bubble non è visibile:
+                        // generiamo solo quando si sveglia.
+                        return pet.isSleeping ? null : { type: 'WAKE', detail: 'I just woke up from a nap. Greet the user with a short, sleepy morning line.' };
+                    default:
+                        return null;
+                }
+            }
+
+            /**
+             * Applica alla sintesi vocale il pitch/rate della specie del pet
+             * attivo, così ogni specie ha una voce riconoscibile.
+             */
+            applyPetVoice() {
+                if (!this.petSynth || !this.petAI) return;
+                const pet = this.getActivePet();
+                if (!pet || !pet.canAct()) return;
+                const persona = this.petAI.getPersonality(pet.species);
+                if (persona && persona.voice) {
+                    this.petSynth.setVoice(persona.voice);
+                }
+            }
+
+            /**
+             * Avvia una frase "viva": mostra un indicatore di pensiero, poi
+             * streamma la risposta del modello nel bubble in tempo reale.
+             *
+             * @param {Pet} pet Il pet che parla
+             * @param {Object} [opts]
+             * @param {Object} [opts.event] Stimolo di gioco {type, detail}
+             * @param {string} [opts.userText] Testo appena detto dall'utente
+             * @param {(text: string|null) => void} [opts.onFinal] Callback a generazione conclusa
+             */
+            startLiveSpeech(pet, { event = null, userText = null, onFinal = null } = {}) {
+                if (!this.petAI || !pet || !pet.canAct()) return;
+
+                this.applyPetVoice();
+
+                const token = ++this.speechToken;
+                this.speechGenerating = true;
+                this.petSpeech = '...';
+                this.speechTimer = 1e9;
+                this.speechOpacity = 1;
+
+                let started = false;
+
+                const onChunk = (fullText) => {
+                    if (token !== this.speechToken) return;
+                    if (!started) {
+                        started = true;
+                        this.petSpeech = '';
+                    }
+                    this.petSpeech = fullText;
+                    this.speechTimer = 1e9;
+                    this.speechOpacity = 1;
+                };
+
+                const final = (text) => {
+                    if (token !== this.speechToken) return;
+                    this.speechGenerating = false;
+                    if (text) {
+                        this.petSpeech = text;
+                        // Durata proporzionale alla lunghezza: una risposta lunga resta leggibile.
+                        this.speechTimer = this.speechShowDuration + text.length * 2;
+                        this.speechOpacity = 1;
+                        // TTS: ogni risposta AI viene letta dal pet con la voce.
+                        if (this.petSynth) this.petSynth.speak(text);
+                    } else {
+                        this.petSpeech = null;
+                        this.speechOpacity = 0;
+                    }
+                    onFinal?.(text);
+                    this.saveGame();
+                };
+
+                // Interrompi una generazione precedente per liberare la GPU
+                if (this.speechToken > 1) {
+                    this.petAI.interrupt();
+                }
+
+                this.petAI.generateSpeech(pet, { event, userText, onChunk })
+                    .then(final)
+                    .catch(() => {
+                        if (token !== this.speechToken) return;
+                        this.speechGenerating = false;
+                        // Se l'AI è pronta e la generazione è fallita, silenzio:
+                        // niente frasi pre-scritte quando il modello è disponibile.
+                        if (!this.petAI || !this.petAI.ready) {
+                            this.petSpeech = this.petAI.getFallbackPhrase(pet);
+                            this.speechTimer = this.speechShowDuration;
+                            this.speechOpacity = 1;
+                        } else {
+                            this.petSpeech = null;
+                            this.speechOpacity = 0;
+                        }
+                        onFinal?.(null);
+                        this.saveGame();
+                    });
+            }
+
+            layEgg(parentPet) {
+                parentPet.canLayEgg = false;
+                parentPet.highCareTimer = 0;
+
+                const newGen = parentPet.generation + 1;
+                const bonusModifier = Math.max(0.5, parentPet.decayModifier * 0.9);
+
+                const newPet = new Pet({
+                    name: '???',
+                    generation: newGen,
+                    decayModifier: bonusModifier,
+                    parentId: parentPet.id,
+                    parentName: parentPet.name
+                });
+
+                this.pets.push(newPet);
+                this.totalPetsRaised++;
+                this.highestGen = Math.max(this.highestGen, newGen);
+
+                audio.playChime();
+                if (this.isOpen) {
+                    this.showModal("UOVO DEPOSTO!", "Un nuovo uovo è stato aggiunto alla famiglia con tratti ereditati!");
+                } else {
+                    this.showEggBanner('Un nuovo uovo in famiglia!');
+                }
+                if (this.petAI && parentPet.canAct()) {
+                    this.startLiveSpeech(parentPet, {
+                        event: { type: 'BREED', detail: 'I just laid an egg! Comment on this special moment in a short, proud line.' }
+                    });
+                }
+                this.activePetIndex = this.pets.length - 1;
+                this.achievements.record('BREED');
+                this.saveGame();
+                this.checkAchievements();
+            }
+
+            triggerAnimation(type) {
+                this.actionAnimation = type;
+                this.actionAnimTimer = 30;
+            }
+
+            startMiniGame() {
+                this.miniGameActive = true;
+                this.menuOpen = false;
+                this.miniGameScore = 0;
+                this.starY = 0;
+                this.starX = Math.random() * 240 + 20;
+                this.showModal("MINIGIOCO", "Raccogli le stelle con ◀ / ▶, le frecce o trascinando sul touch screen!");
+            }
+
+            updateMiniGame() {
+                this.starY += this.starSpeed;
+                
+                if (this.starY >= 135 && this.starY <= 155) {
+                    if (Math.abs(this.starX - (this.basketX + 20)) < 30) {
+                        this.miniGameScore++;
+                        audio.playBeep(800 + this.miniGameScore * 100, 'square', 0.1);
+                        this.starY = 0;
+                        this.starX = Math.random() * 240 + 20;
+
+                        if (this.miniGameScore >= 5) {
+                            this.miniGameActive = false;
+                            const pet = this.getActivePet();
+                            if (pet) {
+                                pet.play();
+                                pet.careStats.wins++;
+                            }
+                            this.achievements.record('WIN');
+                            this.coins += 20;
+                            this.showModal("VITTORIA!", "Hai vinto! Felicità aumentata! +20 monete!");
+                            if (this.petAI && pet.canAct()) {
+                                this.startLiveSpeech(pet, {
+                                    event: { type: 'PLAY', detail: 'The user just beat me at the game. React with playful enthusiasm and friendly rivalry in a short line.' }
+                                });
+                            }
+                            this.checkAchievements();
+                        }
+                    }
+                }
+
+                if (this.starY > 165) {
+                    this.starY = 0;
+                    this.starX = Math.random() * 240 + 20;
+                }
+            }
+
+            setupLoop() {
+                const loop = (timestamp) => {
+                    const delta = (timestamp - this.lastTime) / 1000;
+                    this.lastTime = timestamp;
+
+                    this.update(delta);
+                    if (this.isOpen) {
+                        this.render();
+                    }
+
+                    requestAnimationFrame(loop);
+                };
+                requestAnimationFrame(loop);
+            }
+
+            update(delta) {
+                this.animFrame++;
+
+                this.pets.forEach(pet => pet.update(delta));
+
+                const layer = this.pets.find(p => p.justLaidEgg);
+                if (layer) {
+                    layer.justLaidEgg = false;
+                    this.layEgg(layer);
+                }
+
+                const hatched = this.pets.find(p => p.justHatched);
+                if (hatched) {
+                    hatched.justHatched = false;
+                    this.achievements.record('HATCH', hatched.species);
+                    if (this.isOpen) {
+                        this.showModal('SCHIUSO!', `L'uovo si è schiuso: è nato ${hatched.name}!`);
+                    } else {
+                        this.showEggBanner(`È nato ${hatched.name}!`);
+                    }
+                    if (this.petAI && hatched.canAct()) {
+                        this.startLiveSpeech(hatched, {
+                            event: { type: 'HATCH', detail: 'I just hatched from my egg and I am seeing the world for the first time! React with wonder and curiosity in a baby-like phrase.' }
+                        });
+                    }
+                    this.checkAchievements();
+                }
+
+                const sickPet = this.pets.find(p => p.justGotSick);
+                if (sickPet) {
+                    sickPet.justGotSick = false;
+                    if (this.petAI && sickPet.canAct() && !this.miniGameActive) {
+                        this.startLiveSpeech(sickPet, {
+                            event: { type: 'SICK', detail: 'I just got sick. Communicate that you feel unwell and ask the user for help in a short, needy line.' }
+                        });
+                    }
+                }
+
+                const currentPet = this.getActivePet();
+                if (currentPet) {
+                    if (currentPet.stage === 'DEPARTED') {
+                        const wasLastPet = this.pets.length === 1;
+                        this.achievements.record('DEPARTED');
+                        this.archivePet(currentPet, 'DEPARTED');
+                        const toyLoss = currentPet.toys && currentPet.toys.length ? ` I suoi ${currentPet.toys.length} toy sono andati con lui.` : '';
+                        this.showModal("ADDIO", `${currentPet.name} è partito felicemente per il Pianeta Pet, lasciando spazio alle nuove generazioni!${toyLoss}`, wasLastPet ? () => this.startEggWaiting() : null);
+                        this.pets.splice(this.activePetIndex, 1);
+                        if (!wasLastPet) this.activePetIndex = 0;
+                        this.checkAchievements();
+                    }
+                }
+
+                if (this.miniGameActive) {
+                    this.updateMiniGame();
+                }
+
+                if (this.shopFlash && --this.shopFlash.timer <= 0) this.shopFlash = null;
+
+                if (this.animFrame % 60 === 0) {
+                    this.checkAchievements();
+                }
+
+                if (this.animFrame % 180 === 0) {
+                    this.saveGame();
+                }
+
+                // Aggiorna timer e opacity del speech bubble
+                if (this.speechTimer > 0) {
+                    this.speechTimer--;
+                    if (this.speechTimer > this.speechShowDuration - this.speechFadeDuration) {
+                        this.speechOpacity = Math.min(1, this.speechOpacity + 1 / this.speechFadeDuration);
+                    } else if (this.speechTimer < this.speechFadeDuration) {
+                        this.speechOpacity = Math.max(0, this.speechOpacity - 1 / this.speechFadeDuration);
+                    } else {
+                        this.speechOpacity = 1;
+                    }
+                    if (this.speechTimer <= 0) {
+                        this.petSpeech = null;
+                        this.speechOpacity = 0;
+                        // Ferma TTS quando il bubble scompare
+                        if (this.petSynth && this.petSynth.speaking) {
+                            this.petSynth.stop();
+                        }
+                    }
+                }
+
+                this.updateNotifications();
+                this.updateUI();
+            }
+
+            render() {
+                this.ctx.fillStyle = '#879864';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+                const pet = this.getActivePet();
+
+                if (this.miniGameActive) {
+                    this.renderMiniGame();
+                    return;
+                }
+
+                if (this.achScreenOpen) {
+                    this.renderAchievements();
+                    return;
+                }
+
+                if (this.shopScreenOpen) {
+                    this.renderShop();
+                    return;
+                }
+
+                if (this.treeScreenOpen) {
+                    this.renderTree();
+                    return;
+                }
+
+                if (!pet) return;
+
+                this.drawMenuIcons();
+
+                if (pet.isSleeping) {
+                    this.ctx.fillStyle = 'rgba(0,0,0,0.2)';
+                    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+                    this.ctx.fillStyle = '#1f2a08';
+                    this.ctx.font = 'bold 18px monospace';
+                    const zOffset = Math.sin(this.animFrame * 0.1) * 5;
+                    this.ctx.fillText('Z z z . .', 200, 55 + zOffset);
+                }
+
+                for (let i = 0; i < pet.poopCount; i++) {
+                    this.drawPixelPoop(35 + i * 45, 128);
+                }
+
+                if (this.actionAnimTimer > 0) {
+                    this.actionAnimTimer--;
+                    if (this.actionAnimation === 'FEED') {
+                        this.drawPixelFood(188, 74);
+                    } else if (this.actionAnimation === 'CLEAN') {
+                        this.drawBroom(190, 72);
+                    }
+                }
+
+                const centerX = 150;
+                const centerY = 95 + Math.sin(this.animFrame * 0.1) * 3;
+
+                if (pet.stage === 'DEAD') {
+                    this.drawTombstone(centerX, 100);
+                } else if (pet.stage === 'EGG') {
+                    this.drawEgg(centerX, centerY);
+                } else {
+                    this.drawPetSprite(pet, centerX, centerY);
+                }
+
+                // Toy assegnati (uno per tipo), a terra centrati sotto il pet
+                if (pet.stage !== 'DEAD') {
+                    const toys = (pet.toys || []).filter(id => TOYS[id]);
+                    const n = Math.min(toys.length, 5);
+                    for (let i = 0; i < n; i++) {
+                        const toyX = n > 1
+                            ? ((this.canvas.width - (n * 32 + (n - 1) * 8)) / 2) + i * (32 + 8)
+                            : (this.canvas.width - 32) / 2;
+                        const toyY = 130 + Math.sin(this.animFrame * 0.1 + i) * 2;
+                        this.drawPixelSprite(TOYS[toys[i]].sprite, toyX, toyY, 2);
+                    }
+                }
+
+                // Speech bubble AI (non mostrare se dorme, minigame, o schermate overlay)
+                if (this.petSpeech && this.speechOpacity > 0 && pet.stage !== 'DEAD' && !pet.isSleeping && !this.miniGameActive && !this.shopScreenOpen && !this.achScreenOpen && !this.treeScreenOpen) {
+                    this.drawSpeechBubble(pet, centerX, centerY);
+                }
+            }
+
+            drawPetSprite(pet, x, y) {
+                const def = SPECIES[pet.species] || SPECIES.BLOB;
+                const scale = pet.stage === 'BABY' ? 2 : (pet.stage === 'SENIOR' ? 4 : 3);
+                const ox = x - 8 * scale;
+                const oy = y - 8 * scale;
+
+                this.drawPixelSprite(def.sprite, ox, oy, scale);
+                this.drawPetFace(pet, ox, oy, scale);
+
+                if (pet.isSick) {
+                    this.drawSkull(ox - 14, oy + 4);
+                }
+            }
+
+            drawPetFace(pet, ox, oy, s) {
+                const c = this.ctx;
+                c.fillStyle = '#1f2a08';
+                const u = (ux, uy, uw, uh) => c.fillRect(ox + ux * s, oy + uy * s, uw * s, uh * s);
+
+                if (pet.isSleeping) {
+                    u(5, 7, 2, 1);
+                    u(9, 7, 2, 1);
+                } else if (pet.isSick || pet.happiness < 30) {
+                    u(4, 6, 1, 1); u(5, 7, 1, 1); u(6, 8, 1, 1);
+                    u(6, 6, 1, 1); u(4, 8, 1, 1);
+                    u(8, 6, 1, 1); u(9, 7, 1, 1); u(10, 8, 1, 1);
+                    u(10, 6, 1, 1); u(8, 8, 1, 1);
+                } else {
+                    u(5, 6, 2, 2);
+                    u(9, 6, 2, 2);
+                }
+
+                if (pet.happiness > 60 && !pet.isSleeping) {
+                    u(6, 10, 4, 1);
+                    u(5, 9, 1, 1);
+                    u(10, 9, 1, 1);
+                } else {
+                    u(6, 11, 4, 1);
+                    u(5, 12, 1, 1);
+                    u(10, 12, 1, 1);
+                }
+
+                if (pet.stage === 'SENIOR') {
+                    c.strokeStyle = '#1f2a08';
+                    c.lineWidth = Math.max(1, Math.floor(s / 3));
+                    c.strokeRect(ox + 4 * s + 0.5, oy + 5 * s + 0.5, 3 * s, 3 * s);
+                    c.strokeRect(ox + 9 * s + 0.5, oy + 5 * s + 0.5, 3 * s, 3 * s);
+                    c.beginPath();
+                    c.moveTo(ox + 7 * s, oy + 6 * s);
+                    c.lineTo(ox + 9 * s, oy + 6 * s);
+                    c.stroke();
+                }
+            }
+
+            drawSpeechBubble(pet, petX, petY) {
+                const c = this.ctx;
+                const text = this.petSpeech;
+                if (!text || this.speechOpacity <= 0) return;
+
+                c.save();
+                c.globalAlpha = this.speechOpacity;
+
+                // Wrap testo: max ~38 caratteri per riga
+                const maxChars = 38;
+                const words = text.split(' ');
+                const lines = [];
+                let line = '';
+                for (const w of words) {
+                    if ((line + ' ' + w).trim().length > maxChars && line.length > 0) {
+                        lines.push(line.trim());
+                        line = w;
+                    } else {
+                        line += ' ' + w;
+                    }
+                }
+                if (line.trim()) lines.push(line.trim());
+
+                // Misura dimensioni testo
+                c.font = '10px monospace';
+                const lineHeight = 12;
+                const textH = lines.length * lineHeight;
+                const textW = Math.min(this.canvas.width - 20, Math.max(...lines.map(l => c.measureText(l).width)));
+
+                const padX = 6;
+                const padY = 4;
+                const bubbleW = textW + padX * 2 + 4;
+                const bubbleH = textH + padY * 2 + 2;
+                const bubbleX = Math.max(4, Math.min(this.canvas.width - bubbleW - 4, petX - bubbleW / 2));
+                const bubbleY = Math.max(2, petY - 38 - bubbleH);
+
+                // Ombra
+                c.fillStyle = 'rgba(0,0,0,0.15)';
+                c.fillRect(bubbleX + 2, bubbleY + 2, bubbleW, bubbleH);
+
+                // Sfondo bubble (stile LCD) - diverso se in ascolto
+                const isUserInput = this.isListening || (this.petSpeech && this.petSpeech.startsWith('🎤'));
+                c.fillStyle = isUserInput ? '#c4d4a8' : '#d4dca0';
+                c.fillRect(bubbleX, bubbleY, bubbleW, bubbleH);
+
+                // Bordo pixel-art
+                c.strokeStyle = '#1f2a08';
+                c.lineWidth = 2;
+                c.strokeRect(bubbleX + 1, bubbleY + 1, bubbleW - 2, bubbleH - 2);
+
+                // Bordo interno più chiaro (effetto LCD)
+                c.strokeStyle = '#879864';
+                c.lineWidth = 1;
+                c.strokeRect(bubbleX + 3, bubbleY + 3, bubbleW - 6, bubbleH - 6);
+
+                // Testo
+                c.fillStyle = '#1f2a08';
+                c.font = '10px monospace';
+                c.textAlign = 'left';
+                c.textBaseline = 'top';
+                for (let i = 0; i < lines.length; i++) {
+                    c.fillText(lines[i], bubbleX + padX + 2, bubbleY + padY + i * lineHeight + 1);
+                }
+
+                // Coda del bubble (triangle verso il pet)
+                const tailX = Math.max(bubbleX + 8, Math.min(bubbleX + bubbleW - 8, petX));
+                c.fillStyle = '#d4dca0';
+                c.beginPath();
+                c.moveTo(tailX - 5, bubbleY + bubbleH);
+                c.lineTo(tailX, bubbleY + bubbleH + 8);
+                c.lineTo(tailX + 5, bubbleY + bubbleH);
+                c.closePath();
+                c.fill();
+                c.strokeStyle = '#1f2a08';
+                c.lineWidth = 2;
+                c.beginPath();
+                c.moveTo(tailX - 5, bubbleY + bubbleH);
+                c.lineTo(tailX, bubbleY + bubbleH + 8);
+                c.lineTo(tailX + 5, bubbleY + bubbleH);
+                c.stroke();
+
+                // Icona AI / Mic nell'angolo
+                c.font = '8px monospace';
+                c.fillStyle = '#526333';
+                c.textAlign = 'right';
+                c.textBaseline = 'bottom';
+                const indicator = this.isListening ? 'MIC' : (this.petAI && this.petAI.ready ? 'AI' : '');
+                c.fillText(indicator, bubbleX + bubbleW - 4, bubbleY + bubbleH - 3);
+
+                c.restore();
+            }
+
+            drawEgg(x, y) {
+                const wobble = Math.sin(this.animFrame * 0.2) * 3;
+                this.drawPixelSprite(this.SPRITES.BREED, x - 24 + wobble, y - 24, 3);
+            }
+
+            drawTombstone(x, y) {
+                this.drawPixelSprite(this.SPRITES.TOMB, x - 18, y - 28, 2);
+
+                this.ctx.fillStyle = '#879864';
+                this.ctx.font = 'bold 10px monospace';
+                this.ctx.textAlign = 'center';
+                this.ctx.fillText('R.I.P', x, y - 4);
+                this.ctx.textAlign = 'left';
+            }
+
+            drawPixelPoop(x, y) {
+                this.drawPixelSprite(this.SPRITES.POOP, x, y, 2);
+            }
+
+            drawPixelFood(x, y) {
+                this.drawPixelSprite(this.SPRITES.FEED, x, y, 2);
+            }
+
+            drawBroom(x, y) {
+                this.drawPixelSprite(this.SPRITES.CLEAN, x, y, 2);
+            }
+
+            drawSkull(x, y) {
+                this.drawPixelSprite(this.SPRITES.SKULL, x, y, 1);
+            }
+
+            drawPixelSprite(map, x, y, scale = 2, dark = '#1f2a08', mid = '#526333', light = '#879864') {
+                const c = this.ctx;
+                for (let r = 0; r < map.length; r++) {
+                    const row = map[r];
+                    for (let col = 0; col < row.length; col++) {
+                        const ch = row[col];
+                        if (ch === '.') continue;
+                        c.fillStyle = ch === '#' ? dark : (ch === '-' ? light : mid);
+                        c.fillRect(x + col * scale, y + r * scale, scale, scale);
+                    }
+                }
+            }
+
+            drawStatIcons() {
+                const map = {
+                    iconHunger: this.SPRITES.FEED,
+                    iconHappy: this.SPRITES.PLAY,
+                    iconEnergy: this.SPRITES.SLEEP,
+                    iconHygiene: this.SPRITES.CLEAN
+                };
+                const size = 22;
+                const dark = '#1f2a08';
+                const mid = '#526333';
+                const light = '#879864';
+                Object.entries(map).forEach(([id, sprite]) => {
+                    const cvs = document.getElementById(id);
+                    if (!cvs || !sprite) return;
+                    const ctx = cvs.getContext('2d');
+                    ctx.clearRect(0, 0, size, size);
+                    const s = size / sprite.length;
+                    for (let r = 0; r < sprite.length; r++) {
+                        for (let c = 0; c < sprite[r].length; c++) {
+                            const ch = sprite[r][c];
+                            if (ch === '.') continue;
+                            ctx.fillStyle = ch === '#' ? dark : (ch === '-' ? light : mid);
+                            ctx.fillRect(Math.floor(c * s), Math.floor(r * s), Math.ceil(s), Math.ceil(s));
+                        }
+                    }
+                });
+            }
+
+            isMenuActionAvailable(item) {
+                const pet = this.getActivePet();
+                if (!pet) return false;
+                const checks = {
+                    MIC: p => p.canAct() && !!(this.speechRecognizer && this.speechRecognizer.isSupported()),
+                    FEED: p => p.canFeed(),
+                    PLAY: p => p.canPlay(),
+                    CLEAN: p => p.canClean(),
+                    SLEEP: p => p.canSleep(),
+                    HEAL: p => p.canHeal() && this.coins >= 80
+                };
+                return checks[item](pet);
+            }
+
+            moveMenuIndex(dir) {
+                const len = this.MENU_ITEMS.length;
+                for (let i = 1; i <= len; i++) {
+                    const idx = ((this.menuIndex + dir * i) % len + len) % len;
+                    if (this.isMenuActionAvailable(this.MENU_ITEMS[idx])) {
+                        this.menuIndex = idx;
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            normalizeMenuSelection() {
+                if (!this.isMenuActionAvailable(this.MENU_ITEMS[this.menuIndex])) {
+                    this.moveMenuIndex(1);
+                }
+            }
+
+            drawMenuIcons() {
+                const cell = Math.min(46, Math.floor((this.canvas.width - 8) / this.MENU_ITEMS.length));
+                const icon = 32;
+                const startX = (this.canvas.width - this.MENU_ITEMS.length * cell) / 2;
+                const y = 5;
+
+                this.MENU_ITEMS.forEach((item, i) => {
+                    const x = startX + i * cell + (cell - icon) / 2;
+                    const available = this.isMenuActionAvailable(item);
+                    const selected = this.menuOpen && available && i === this.menuIndex;
+                    const micActive = item === 'MIC' && this.isListening;
+
+                    if (selected || micActive) {
+                        this.ctx.fillStyle = micActive ? '#dc2626' : '#1f2a08';
+                        this.ctx.fillRect(x - 4, y - 5, cell - 1, 42);
+                    }
+
+                    this.ctx.save();
+                    if (!available) this.ctx.globalAlpha = 0.3;
+
+                    this.drawPixelSprite(this.SPRITES[item], x, y, 2,
+                        selected ? '#879864' : '#1f2a08',
+                        '#526333',
+                        selected ? '#1f2a08' : '#879864');
+                    this.ctx.restore();
+
+                    if (item === 'HEAL') {
+                        this.ctx.fillStyle = '#526333';
+                        this.ctx.fillRect(x + 22, y + 26, 24, 11);
+                        this.ctx.fillStyle = '#879864';
+                        this.ctx.font = 'bold 8px monospace';
+                        this.ctx.fillText('$80', x + 24, y + 35);
+                    }
+                });
+            }
+
+            renderMiniGame() {
+                this.ctx.fillStyle = '#1f2a08';
+                this.ctx.font = 'bold 15px monospace';
+                this.ctx.fillText(`STELLE: ${this.miniGameScore} / 5`, 10, 20);
+
+                this.ctx.fillText('★', this.starX, this.starY);
+                this.ctx.fillRect(this.basketX, 140, 40, 10);
+            }
+
+            // ---- SHOP ----
+
+            // Catalogo shop: i toy già posseduti dal pet attivo spariscono dalla lista
+            getShopItems() {
+                const pet = this.getActivePet();
+                const owned = pet && Array.isArray(pet.toys) ? pet.toys : [];
+                return [
+                    ...Object.keys(TOYS).filter(id => !owned.includes(id))
+                        .map(id => ({ type: 'TOY', id, name: TOYS[id].name, price: TOYS[id].price, sprite: TOYS[id].sprite })),
+                    { type: 'SNACK', id: 'SNACK', name: 'Snack', price: 40, sprite: getArt('FEED') },
+                    { type: 'EXIT', id: 'EXIT', name: 'Esci', price: 0, sprite: null }
+                ];
+            }
+
+            toggleShop() {
+                if (!this.isOpen || this.miniGameActive) return;
+                if (!document.getElementById('overlayModal').classList.contains('hidden')) return;
+                if (this.achScreenOpen) this.achScreenOpen = false;
+                if (this.treeScreenOpen) this.treeScreenOpen = false;
+
+                if (this.shopScreenOpen) {
+                    this.shopScreenOpen = false;
+                } else {
+                    if (!this.getActivePet()) {
+                        this.showModal("SHOP", "Nessun pet a cui fare regali!");
+                        return;
+                    }
+                    this.shopScreenOpen = true;
+                    this.menuOpen = false;
+                    this.shopIndex = 0;
+                }
+                audio.playBeep(500, 'square', 0.06);
+                this.updateUI();
+            }
+
+            flashShop(text) {
+                this.shopFlash = { text, timer: 110 };
+            }
+
+            shopBuy() {
+                const items = this.getShopItems();
+                const item = items[this.shopIndex];
+                if (!item) return;
+
+                if (item.type === 'EXIT') {
+                    this.shopScreenOpen = false;
+                    audio.playBeep(400, 'square', 0.06);
+                    this.updateUI();
+                    return;
+                }
+
+                const pet = this.getActivePet();
+                if (!pet) return;
+
+                if (item.type === 'TOY') {
+                    const def = TOYS[item.id];
+                    if (this.coins >= def.price) {
+                        this.coins -= def.price;
+                        pet.toys.push(item.id);
+                        // Il toy esce dal catalogo: riclampa la selezione sulla nuova lista
+                        this.shopIndex = Math.min(this.shopIndex, this.getShopItems().length - 1);
+                        audio.playChime();
+                        this.flashShop(`${def.name} assegnato a ${pet.name}!`);
+                    } else {
+                        audio.playAlert();
+                        this.flashShop('Monete insufficienti!');
+                    }
+                } else if (item.type === 'SNACK') {
+                    if (pet.stage === 'EGG') { audio.playAlert(); this.flashShop('È un uovo!'); return; }
+                    if (pet.isSleeping) { audio.playAlert(); this.flashShop('Sta dormendo!'); return; }
+                    if (this.coins < item.price) { audio.playAlert(); this.flashShop('Monete insufficienti!'); return; }
+                    this.coins -= item.price;
+                    pet.hunger = Math.min(100, pet.hunger + 30);
+                    pet.careStats.feeds++;
+                    this.achievements.record('FEED');
+                    audio.playBeep(600, 'square', 0.1);
+                    this.flashShop('Gnam! Fame +30');
+                }
+
+                this.saveGame();
+                this.checkAchievements();
+                this.updateUI();
+            }
+
+            renderShop() {
+                const c = this.ctx;
+                const items = this.getShopItems();
+                const rows = 5;
+
+                c.fillStyle = '#1f2a08';
+                c.fillRect(0, 0, this.canvas.width, 18);
+                c.fillStyle = '#879864';
+                c.font = 'bold 13px monospace';
+                c.fillText(`SHOP  $ ${Math.floor(this.coins)}`, 8, 13);
+                c.textAlign = 'right';
+                c.fillText(`${this.shopIndex + 1}/${items.length}`, 302, 13);
+                c.textAlign = 'left';
+
+                const rowH = 22;
+                const startY = 24;
+                const start = Math.min(Math.max(0, this.shopIndex - rows + 1), Math.max(0, items.length - rows));
+
+                for (let i = 0; i < rows; i++) {
+                    const idx = start + i;
+                    const item = items[idx];
+                    if (!item) break;
+                    const y = startY + i * rowH;
+                    const selected = idx === this.shopIndex;
+
+                    if (selected) {
+                        c.fillStyle = 'rgba(31,42,8,0.85)';
+                        c.fillRect(0, y - 3, this.canvas.width, rowH - 2);
+                    }
+
+                    c.fillStyle = selected ? '#879864' : 'rgba(31,42,8,0.18)';
+                    c.fillRect(6, y, 16, 16);
+                    if (item.sprite) {
+                        this.drawPixelSprite(item.sprite, 6, y, 1,
+                            selected ? '#879864' : '#1f2a08',
+                            selected ? '#1f2a08' : '#526333',
+                            selected ? '#1f2a08' : '#879864');
+                    } else {
+                        c.font = 'bold 13px monospace';
+                        c.fillStyle = selected ? '#879864' : '#1f2a08';
+                        c.fillText('✕', 10, y + 12);
+                    }
+
+                    c.fillStyle = selected ? '#879864' : '#1f2a08';
+                    c.font = 'bold 13px monospace';
+                    c.fillText(item.name, 28, y + 8);
+
+                    c.font = '10px monospace';
+                    let sub = '';
+                    if (item.type === 'TOY') {
+                        sub = `toy · -${Math.round(TOYS[item.id].bonus * 100)}% calo gioia`;
+                    } else if (item.type === 'SNACK') {
+                        sub = 'fame +30';
+                    } else {
+                        sub = 'B per uscire';
+                    }
+                    c.fillText(sub, 28, y + 17);
+
+                    c.font = 'bold 12px monospace';
+                    c.textAlign = 'right';
+                    c.fillText(item.type === 'EXIT' ? '⏎' : `$${item.price}`, 302, y + 12);
+                    c.textAlign = 'left';
+                }
+
+                if (this.shopFlash) {
+                    c.fillStyle = '#1f2a08';
+                    c.fillRect(0, 162, this.canvas.width, 18);
+                    c.fillStyle = '#879864';
+                    c.font = 'bold 12px monospace';
+                    c.textAlign = 'center';
+                    c.fillText(this.shopFlash.text, this.canvas.width / 2, 154);
+                    c.textAlign = 'left';
+                }
+            }
+
+            renderAchievements() {
+                const c = this.ctx;
+                const rows = 6;
+
+                c.fillStyle = '#1f2a08';
+                c.fillRect(0, 0, this.canvas.width, 18);
+                c.fillStyle = '#879864';
+                c.font = 'bold 13px monospace';
+                c.fillText(`TROFEI ${Object.keys(this.achievements.unlocked).length}/${ACHIEVEMENTS.length}`, 8, 13);
+                if (this.achScreenScroll > 0) c.fillText('▲', 272, 13);
+                if (this.achScreenScroll < ACHIEVEMENTS.length - rows) c.fillText('▼', 290, 13);
+
+                const rowH = 22;
+                const startY = 24;
+                for (let i = 0; i < rows; i++) {
+                    const def = ACHIEVEMENTS[this.achScreenScroll + i];
+                    if (!def) break;
+                    const y = startY + i * rowH;
+                    const unlocked = this.achievements.isUnlocked(def);
+
+                    c.save();
+                    if (!unlocked) c.globalAlpha = 0.55;
+
+                    c.fillStyle = unlocked ? '#526333' : 'rgba(31,42,8,0.18)';
+                    c.fillRect(6, y, 16, 16);
+                    c.font = '13px monospace';
+                    c.fillStyle = '#1f2a08';
+                    c.fillText(unlocked ? def.icon : '🔒', 8, y + 12);
+
+                    c.font = 'bold 13px monospace';
+                    c.fillText(def.title, 28, y + 8);
+                    c.font = '10px monospace';
+                    c.fillText(def.desc, 28, y + 17);
+
+                    c.font = 'bold 12px monospace';
+                    c.textAlign = 'right';
+                    if (unlocked) {
+                        c.fillText('✓', 302, y + 12);
+                    } else {
+                        const pr = this.achievements.progressFor(def);
+                        c.fillText(`${pr.current}/${pr.target}`, 302, y + 12);
+                    }
+                    c.textAlign = 'left';
+                    c.restore();
+
+                    c.fillStyle = 'rgba(31,42,8,0.2)';
+                    c.fillRect(6, y + rowH - 3, 298, 1);
+                }
+            }
+
+            // Snapshot del pet nell'archivio dinastico prima della rimozione
+            archivePet(pet, fate) {
+                if (this.petHistory.some(e => e.id === pet.id)) return;
+                this.petHistory.push({
+                    id: pet.id,
+                    name: pet.name,
+                    species: pet.species,
+                    generation: pet.generation,
+                    fate: fate, // 'DEPARTED' | 'DEAD'
+                    ageSeconds: Math.floor(pet.ageSeconds),
+                    bornAt: pet.bornAt || null,
+                    parentName: pet.parentName || null,
+                    stats: Object.assign({ feeds: 0, wins: 0, cleans: 0, heals: 0 }, pet.careStats)
+                });
+            }
+
+            // Righe dell'albero: testate GENERAZIONE (dalla più alta) + pet (archiviati e vivi)
+            buildTreeRows() {
+                const entries = [
+                    ...this.petHistory,
+                    ...this.pets.map(p => ({
+                        id: p.id,
+                        name: p.name,
+                        species: p.species,
+                        generation: p.generation,
+                        fate: p.stage === 'EGG' ? 'EGG' : 'ALIVE',
+                        ageSeconds: Math.floor(p.ageSeconds),
+                        bornAt: p.bornAt || 0,
+                        parentName: p.parentName || null,
+                        stats: p.careStats || { feeds: 0, wins: 0, cleans: 0, heals: 0 }
+                    }))
+                ];
+
+                const gens = [...new Set(entries.map(e => e.generation))].sort((a, b) => b - a);
+                const rows = [];
+                gens.forEach(g => {
+                    rows.push({ type: 'gen', gen: g });
+                    entries.filter(e => e.generation === g)
+                        .sort((a, b) => (a.bornAt || 0) - (b.bornAt || 0))
+                        .forEach(e => rows.push({ type: 'pet', pet: e }));
+                });
+                return rows;
+            }
+
+            renderTree() {
+                const c = this.ctx;
+                const rows = this.buildTreeRows();
+                const visible = 6;
+                const maxScroll = Math.max(0, rows.length - visible);
+                this.treeScreenScroll = Math.min(this.treeScreenScroll, maxScroll);
+
+                const totalPets = this.petHistory.length + this.pets.length;
+                const maxGen = Math.max(1, ...this.petHistory.map(e => e.generation), ...this.pets.map(p => p.generation));
+
+                c.fillStyle = '#1f2a08';
+                c.fillRect(0, 0, this.canvas.width, 18);
+                c.fillStyle = '#879864';
+                c.font = 'bold 13px monospace';
+                c.fillText(`ALBERO GEN MAX ${maxGen} · ${totalPets} PET`, 8, 13);
+                if (this.treeScreenScroll > 0) c.fillText('▲', 272, 13);
+                if (this.treeScreenScroll < maxScroll) c.fillText('▼', 290, 13);
+
+                const rowH = 22;
+                const startY = 24;
+                const fateIcon = { ALIVE: '♥', DEPARTED: '✈', DEAD: '✝', EGG: '○' };
+
+                for (let i = 0; i < visible; i++) {
+                    const row = rows[this.treeScreenScroll + i];
+                    if (!row) break;
+                    const y = startY + i * rowH;
+
+                    if (row.type === 'gen') {
+                        c.fillStyle = 'rgba(31,42,8,0.25)';
+                        c.fillRect(0, y, this.canvas.width, 12);
+                        c.fillStyle = '#1f2a08';
+                        c.font = 'bold 12px monospace';
+                        c.fillText(`— GENERAZIONE ${row.gen} —`, 8, y + 9);
+                        continue;
+                    }
+
+                    const pet = row.pet;
+
+                    // Ritratto: uovo se ancora uovo, altrimenti sprite della specie
+                    c.fillStyle = 'rgba(31,42,8,0.18)';
+                    c.fillRect(6, y, 16, 16);
+                    const sprite = pet.fate === 'EGG' ? this.SPRITES.BREED : (SPECIES[pet.species] || SPECIES.BLOB).sprite;
+                    this.drawPixelSprite(sprite, 6, y, 1);
+
+                    c.fillStyle = '#1f2a08';
+                    c.font = 'bold 13px monospace';
+                    c.fillText(pet.name, 28, y + 8);
+
+                    c.font = 'bold 12px monospace';
+                    c.textAlign = 'right';
+                    c.fillText(`${fateIcon[pet.fate] || '?'} ${pet.fate === 'EGG' ? 'attesa' : formatAge(pet.ageSeconds)}`, 302, y + 8);
+                    c.textAlign = 'left';
+
+                    c.font = '10px monospace';
+                    const origin = pet.parentName ? `di ${pet.parentName}` : 'capostipite';
+                    c.fillText(`${origin} · 🍖${pet.stats.feeds} ⭐${pet.stats.wins} 🧹${pet.stats.cleans} 💉${pet.stats.heals}`, 28, y + 17);
+
+                    c.fillStyle = 'rgba(31,42,8,0.2)';
+                    c.fillRect(6, y + rowH - 3, 298, 1);
+                }
+            }
+
+            checkAchievements() {
+                this.pets.forEach(p => {
+                    if (p.stage === 'SENIOR' && !this.seniorSeenIds.has(p.id)) {
+                        this.seniorSeenIds.add(p.id);
+                        this.achievements.record('SENIOR');
+                    }
+                });
+                this.achievements.sync(this);
+                this.achievements.check(this).forEach(def => this.onAchievementUnlocked(def));
+            }
+
+            onAchievementUnlocked(def) {
+                audio.playUnlock();
+
+                const toast = document.getElementById('achievementToast');
+                document.getElementById('achToastIcon').innerText = def.icon;
+                document.getElementById('achToastText').innerText = 'SBLOCCATO! ' + def.title.toUpperCase();
+                toast.classList.remove('hidden', 'achievement-toast-show');
+                void toast.offsetWidth; // riavvia l'animazione
+                toast.classList.add('achievement-toast-show');
+
+                if (this.achToastTimeout) clearTimeout(this.achToastTimeout);
+                this.achToastTimeout = setTimeout(() => toast.classList.add('hidden'), 3500);
+
+                this.saveGame();
+                this.updateUI();
+            }
+
+            updateUI() {
+                this.drawStatIcons();
+                const pet = this.getActivePet();
+
+                document.getElementById('petCountLabel').innerText = this.isWaitingEgg ? '---' : `${this.activePetIndex + 1}/${this.pets.length}`;
+
+                document.getElementById('achTracker').innerText = `🏆 ${Object.keys(this.achievements.unlocked).length}/${ACHIEVEMENTS.length}`;
+
+                document.getElementById('coinTracker').innerText = `🪙 ${Math.floor(this.coins)}`;
+
+                document.getElementById('abcHint').innerText = this.shopScreenOpen
+                    ? '◀/▶: SCEGLI · B: COMPRA'
+                    : this.achScreenOpen || this.treeScreenOpen
+                        ? '◀/▶: SCORRI · B: CHIUDI'
+                        : this.miniGameActive
+                            ? '◀: SINISTRA · ▶: DESTRA · B: ESCI'
+                            : '◀/▶: SCEGLI · A: CONFERMA';
+                
+                const prevBtn = document.getElementById('petNavPrev');
+                const nextBtn = document.getElementById('petNavNext');
+                const isOverlayScreen = this.miniGameActive || this.shopScreenOpen || this.achScreenOpen || this.treeScreenOpen;
+
+                if (!isOverlayScreen && this.pets.length > 1) {
+                    prevBtn.classList.toggle('hidden', this.activePetIndex <= 0);
+                    nextBtn.classList.toggle('hidden', this.activePetIndex >= this.pets.length - 1);
+                } else {
+                    if (!prevBtn.classList.contains('hidden')) prevBtn.classList.add('hidden');
+                    if (!nextBtn.classList.contains('hidden')) nextBtn.classList.add('hidden');
+                }
+
+                if (!pet) return;
+
+                this.normalizeMenuSelection();
+
+                document.getElementById('petNameStage').innerText = `${pet.name} · ${pet.stage}`;
+                document.getElementById('genTracker').innerText = `GEN ${pet.generation}`;
+
+                const petIcon = pet.species && SPECIES[pet.species] ? SPECIES[pet.species].emoji : (pet.stage === 'EGG' ? '🥚' : '🗿');
+                document.getElementById('widgetFloatIcon').innerText = petIcon;
+                document.getElementById('titlebarIcon').innerText = petIcon;
+
+                [['barHunger', pet.hunger], ['barHappy', pet.happiness], ['barEnergy', pet.energy], ['barHygiene', pet.hygiene], ['barHealth', pet.health]].forEach(([id, value]) => {
+                    const fill = document.getElementById(id);
+                    fill.style.width = (Math.round(value / 10) * 10) + '%';
+                    fill.closest('.stat-item').classList.toggle('stat-critical', value < 30);
+                });
+
+                if (pet.stage === 'DEAD') {
+                    const toyLoss = pet.toys && pet.toys.length ? ` I suoi toy sono andati perduti con lui.` : '';
+                    this.showModal("PET DECEDUTO", `Il tuo pet è morto per negligenza.${toyLoss} Un nuovo uovo apparirà tra poco...`, () => {
+                        this.archivePet(pet, 'DEAD');
+                        this.pets.splice(this.activePetIndex, 1);
+                        if (this.pets.length === 0) {
+                            this.startEggWaiting();
+                        } else {
+                            this.activePetIndex = 0;
+                            this.saveGame();
+                        }
+                    });
+                }
+            }
+
+            showModal(title, text, onConfirm = null) {
+                const modal = document.getElementById('overlayModal');
+                document.getElementById('modalTitle').innerText = title;
+                document.getElementById('modalBody').innerText = text;
+                modal.classList.remove('hidden');
+
+                this.modalConfirmCallback = onConfirm;
+            }
+
+            closeModal() {
+                document.getElementById('overlayModal').classList.add('hidden');
+                if (this.modalConfirmCallback) {
+                    this.modalConfirmCallback();
+                    this.modalConfirmCallback = null;
+                }
+            }
+
+            startEggWaiting(delayMs) {
+                this.pets = [];
+                this.activePetIndex = 0;
+                this.isWaitingEgg = true;
+                this.petHistory = []; // estinzione: l'albero della dinastia si azzera
+
+                if (this.eggWaitTimeout) clearTimeout(this.eggWaitTimeout);
+                if (delayMs === undefined || delayMs === null || isNaN(delayMs)) {
+                    delayMs = randRange(CONFIG.eggSpawn) * 1000;
+                }
+                this.nextEggAt = Date.now() + delayMs;
+
+                this.hideEggBanner();
+                this.isOpen = false;
+                document.body.classList.remove('widget-open');
+                document.getElementById('widgetWindow').classList.add('hidden');
+                document.getElementById('widgetNotificationToast').classList.add('hidden');
+                document.getElementById('widgetBadge').classList.add('hidden');
+                document.getElementById('floatingWidgetBtn').classList.add('hidden');
+                document.getElementById('tamagotchiWidgetRoot').classList.add('hidden');
+
+                this.eggWaitTimeout = setTimeout(() => this.eggFound(), delayMs);
+
+                this.saveGame();
+                this.updateUI();
+                this.updateNotifications();
+            }
+
+            eggFound() {
+                this.eggWaitTimeout = null;
+                this.isWaitingEgg = false;
+                this.nextEggAt = null;
+
+                this.pets = [new Pet({ name: '???', generation: 1 })];
+                this.activePetIndex = 0;
+                this.totalPetsRaised = 1;
+
+                document.getElementById('tamagotchiWidgetRoot').classList.remove('hidden');
+                document.getElementById('floatingWidgetBtn').classList.remove('hidden');
+
+                this.showEggBanner();
+
+                this.saveGame();
+                this.updateUI();
+            }
+
+            showEggBanner(text = 'Hai trovato un uovo!') {
+                const banner = document.getElementById('eggFoundBanner');
+                document.getElementById('eggBannerText').innerText = text;
+                if (this.eggBannerTimeout) clearTimeout(this.eggBannerTimeout);
+                banner.classList.remove('hidden');
+                audio.playChime();
+                this.eggBannerTimeout = setTimeout(() => this.hideEggBanner(), CONFIG.ui.eggBannerSeconds * 1000);
+            }
+
+            hideEggBanner() {
+                if (this.eggBannerTimeout) {
+                    clearTimeout(this.eggBannerTimeout);
+                    this.eggBannerTimeout = null;
+                }
+                document.getElementById('eggFoundBanner').classList.add('hidden');
+            }
+
+            saveGame() {
+                const data = {
+                    pets: this.pets,
+                    activePetIndex: this.activePetIndex,
+                    totalPetsRaised: this.totalPetsRaised,
+                    highestGen: this.highestGen,
+                    petHistory: this.petHistory,
+                    isWaitingEgg: this.isWaitingEgg,
+                    nextEggAt: this.nextEggAt,
+                    coins: this.coins,
+                    achievements: this.achievements.serialize(),
+                    petMemories: this.petAI ? this.petAI.serializeMemories() : {},
+                    petShortTerm: this.petAI ? this.petAI.serializeShortTerm() : {}
+                };
+                localStorage.setItem('pocket_pet_save_v1', JSON.stringify(data));
+            }
+
+            loadGame() {
+                const saved = localStorage.getItem('pocket_pet_save_v1');
+                if (saved) {
+                    try {
+                        const parsed = JSON.parse(saved);
+                        this.achievements.deserialize(parsed.achievements);
+                        if (parsed.isWaitingEgg || !parsed.pets || parsed.pets.length === 0) {
+                            const remaining = (parsed.isWaitingEgg && parsed.nextEggAt) ? Math.max(0, parsed.nextEggAt - Date.now()) : undefined;
+                            this.startEggWaiting(remaining);
+                        } else {
+                            this.pets = parsed.pets.map(pData => new Pet(pData));
+                            this.activePetIndex = Math.min(parsed.activePetIndex || 0, this.pets.length - 1);
+                            this.totalPetsRaised = parsed.totalPetsRaised || this.pets.length;
+                            this.highestGen = parsed.highestGen || 1;
+                            this.petHistory = Array.isArray(parsed.petHistory) ? parsed.petHistory : [];
+                            this.coins = typeof parsed.coins === 'number' ? parsed.coins : 0;
+                            // Le memorie vengono caricate dopo l'inizializzazione del PetAI
+                            this._pendingMemories = parsed.petMemories || {};
+                            this._pendingShortTerm = parsed.petShortTerm || {};
+                            document.getElementById('tamagotchiWidgetRoot').classList.remove('hidden');
+                            document.getElementById('floatingWidgetBtn').classList.remove('hidden');
+                        }
+                    } catch(e) {
+                        this.startEggWaiting();
+                    }
+                } else {
+                    this.startEggWaiting();
+                }
+            }
+        }
+
+        window.addEventListener('load', () => {
+            window.tamaEngine = new WidgetEngine();
+        });
+    </script>
+
+    <script type="module">
+        import { PetAI } from './tools/pet-ai.js';
+        import { SpeechRecognizer } from './tools/speech-recognizer.js';
+        import { PetSynth } from './tools/pet-synth.js';
+        import {
+            LLM_MODELS,
+            getSavedModelId,
+            saveModelId,
+        } from './tools/local-llm-engine.js';
+
+        function initPetAI() {
+            const engine = window.tamaEngine;
+            if (!engine) {
+                setTimeout(initPetAI, 200);
+                return;
+            }
+
+            const petAI = new PetAI({
+                modelId: getSavedModelId(),
+                maxCacheSize: 5,
+            });
+
+            engine.petAI = petAI;
+
+            // Restore the saved memories before init runs.
+            if (engine._pendingMemories) {
+                petAI.deserializeMemories(engine._pendingMemories);
+                delete engine._pendingMemories;
+            }
+            if (engine._pendingShortTerm) {
+                petAI.deserializeShortTerm(engine._pendingShortTerm);
+                delete engine._pendingShortTerm;
+            }
+
+            petAI.addEventListener('statuschange', (e) => {
+                console.log('[PetAI] Status:', e.detail);
+                // When the model becomes ready, greet with a fresh line
+                // (replaces any pre-written phrase shown during loading).
+                if (e.detail === 'ready') {
+                    const pet = engine.getActivePet();
+                    if (pet && pet.canAct() && !engine.speechGenerating) {
+                        engine.startLiveSpeech(pet, {
+                            event: { type: 'GREET', detail: 'The user just opened the game and came to see you. Greet them in one short, warm line and ask how their day is going.' }
+                        });
+                    }
+                    // Hide the settings modal loading hint if it's open.
+                    const statusHint = document.getElementById('modelStatusHint');
+                    if (statusHint) statusHint.textContent = '';
+                }
+            });
+
+            // Surface fallback events: the initial model crashed and the
+            // engine auto-selected a lighter tier. Inform the user.
+            petAI.addEventListener('fallback', (e) => {
+                console.warn(`[PetAI] Initial model failed; using "${e.detail.label}".`);
+                const statusHint = document.getElementById('modelStatusHint');
+                if (statusHint) {
+                    statusHint.textContent = `Auto-switched to ${e.detail.label} (initial model too heavy).`;
+                }
+            });
+
+            // First speech: fallback until the model is loaded.
+            setTimeout(() => {
+                const pet = engine.getActivePet();
+                if (pet && pet.canAct() && !engine.speechGenerating) {
+                    engine.applyPetVoice();
+                    if (petAI.ready) {
+                        engine.startLiveSpeech(pet, {
+                            event: { type: 'GREET', detail: 'The user just opened the game and came to see you. Greet them in one short, warm line and ask how their day is going.' }
+                        });
+                    } else {
+                        engine.petSpeech = petAI.getFallbackPhrase(pet);
+                        engine.speechTimer = engine.speechShowDuration;
+                        engine.speechOpacity = 0;
+                    }
+                }
+            }, 2000);
+
+            petAI.init();
+
+            // === Settings Modal: AI model picker ===
+            const settingsBtn = document.getElementById('settingsBtn');
+            const settingsModal = document.getElementById('settingsModal');
+            const modelSelect = document.getElementById('modelSelect');
+            const modelVramHint = document.getElementById('modelVramHint');
+            const settingsReloadBtn = document.getElementById('settingsReloadBtn');
+            const settingsSaveBtn = document.getElementById('settingsSaveBtn');
+            const settingsCancelBtn = document.getElementById('settingsCancelBtn');
+
+            if (modelSelect) {
+                for (const m of LLM_MODELS) {
+                    const opt = document.createElement('option');
+                    opt.value = m.id;
+                    opt.textContent = `${m.label} (${m.vram})`;
+                    modelSelect.appendChild(opt);
+                }
+                modelSelect.value = petAI.modelId;
+                const syncHint = () => {
+                    const sel = LLM_MODELS.find((m) => m.id === modelSelect.value);
+                    if (modelVramHint) modelVramHint.textContent = sel ? `VRAM stimata: ${sel.vram}` : '';
+                };
+                modelSelect.addEventListener('change', syncHint);
+                syncHint();
+            }
+
+            function closeSettings() { if (settingsModal) settingsModal.classList.add('hidden'); }
+            function openSettings() {
+                if (!settingsModal || !modelSelect) return;
+                modelSelect.value = petAI.modelId;
+                const sel = LLM_MODELS.find((m) => m.id === modelSelect.value);
+                if (modelVramHint && sel) modelVramHint.textContent = `VRAM stimata: ${sel.vram}`;
+                settingsModal.classList.remove('hidden');
+            }
+
+            async function reloadPetAI(newId) {
+                try {
+                    if (settingsReloadBtn) settingsReloadBtn.disabled = true;
+                    if (settingsSaveBtn) settingsSaveBtn.disabled = true;
+                    await petAI.unload();
+                    petAI.modelId = newId;
+                    const statusHint = document.getElementById('modelStatusHint');
+                    if (statusHint) statusHint.textContent = 'Loading new model...';
+                    await petAI.init();
+                    if (statusHint) statusHint.textContent = '';
+                } catch (err) {
+                    console.warn('[Settings] Reload failed:', err.message);
+                    const statusHint = document.getElementById('modelStatusHint');
+                    if (statusHint) statusHint.textContent = `Reload failed: ${err.message}`;
+                } finally {
+                    if (settingsReloadBtn) settingsReloadBtn.disabled = false;
+                    if (settingsSaveBtn) settingsSaveBtn.disabled = false;
+                }
+            }
+
+            if (settingsBtn) settingsBtn.addEventListener('click', openSettings);
+            if (settingsCancelBtn) settingsCancelBtn.addEventListener('click', closeSettings);
+            if (settingsSaveBtn) {
+                settingsSaveBtn.addEventListener('click', () => {
+                    const newId = modelSelect.value;
+                    saveModelId(newId);
+                    closeSettings();
+                });
+            }
+            if (settingsReloadBtn) {
+                settingsReloadBtn.addEventListener('click', async () => {
+                    const newId = modelSelect.value;
+                    saveModelId(newId);
+                    await reloadPetAI(newId);
+                });
+            }
+
+            // === Speech Recognizer (STT) — English stack ===
+            const recognizer = new SpeechRecognizer({ lang: "en-US", continuous: false });
+            engine.speechRecognizer = recognizer;
+            recognizer.loadSavedDevice();
+
+            // === Pet Synth (TTS) — English stack ===
+            const synth = new PetSynth({ lang: "en-US", rate: 0.9 });
+            engine.petSynth = synth;
+
+            // === Mic (azione nel menu) ===
+            if (recognizer.isSupported()) {
+                recognizer.addEventListener('start', () => {
+                    engine.isListening = true;
+                    // Show "Speak now..." in the bubble.
+                    const pet = engine.getActivePet();
+                    if (pet && pet.canAct()) {
+                        engine.userInputSpeech = null;
+                        engine.petSpeech = '🎤 Speak now...';
+                        engine.speechTimer = 300;
+                        engine.speechOpacity = 0;
+                    }
+                });
+
+                recognizer.addEventListener('end', () => {
+                    engine.isListening = false;
+                });
+
+                recognizer.addEventListener('retry', (e) => {
+                    const { attempt, maxRetries } = e.detail;
+                    console.warn(`[STT] Riconnessione... tentativo ${attempt}/${maxRetries}`);
+                    engine.petSpeech = `🔄 Riconnessione... (${attempt}/${maxRetries})`;
+                    engine.speechTimer = 120;
+                    engine.speechOpacity = 0;
+                });
+
+                recognizer.addEventListener('error', (e) => {
+                    console.warn('[STT] Errore:', e.detail.message);
+                    engine.isListening = false;
+                    if (e.detail.error === 'not-allowed') {
+                        engine.petSpeech = 'Permesso microfono negato';
+                        engine.speechTimer = 180;
+                        engine.speechOpacity = 0;
+                    } else if (e.detail.error === 'network') {
+                        engine.petSpeech = '❌ Errore di rete - controlla la connessione';
+                        engine.speechTimer = 240;
+                        engine.speechOpacity = 0;
+                    }
+                });
+
+                recognizer.addEventListener('result', (e) => {
+                    const { transcript, isFinal } = e.detail;
+
+                    if (!isFinal) {
+                        // Mostra il testo in tempo reale
+                        engine.petSpeech = `🎤 "${transcript}"`;
+                        engine.speechTimer = 300;
+                        engine.speechOpacity = 1;
+                        return;
+                    }
+
+                    // Testo finale: processa
+                    engine.petSpeech = `"${transcript}"`;
+                    engine.speechTimer = 120;
+                    engine.speechOpacity = 1;
+
+                    const pet = engine.getActivePet();
+                    if (!pet || !pet.canAct()) return;
+
+                    // Genera la risposta in streaming: salva anche la memoria.
+                    // Il TTS è gestito internamente da startLiveSpeech.
+                    engine.startLiveSpeech(pet, {
+                        userText: transcript
+                    });
+                });
+            }
+
+            // Ferma TTS quando il bubble scompare
+            const origSpeechCheck = engine.update.bind(engine);
+            // Aggiunge controllo TTS nel game loop (sopra la riga 1710)
+        }
+
+        if (document.readyState === 'complete') {
+            initPetAI();
+        } else {
+            window.addEventListener('load', () => setTimeout(initPetAI, 500));
+        }
+    </script>
+</body>
+</html>
