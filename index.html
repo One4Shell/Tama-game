@@ -2195,7 +2195,7 @@ function getUniquePetName() {
             getMenuIconLayout() {
                 const W = this.canvas.width;
                 const vs = this.canvas.height / 180;
-                const edgeMargin = 14;
+                const edgeMargin = 22;
                 const innerW = W - 2 * edgeMargin;
                 const spriteScale = Math.max(2, Math.min(6, Math.round(2 * vs), Math.floor(innerW / (this.MENU_ITEMS.length * 16))));
                 const icon = 16 * spriteScale;
