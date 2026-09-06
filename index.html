@@ -1854,6 +1854,20 @@ function getUniquePetName() {
                     this.saveGame();
                 };
 
+                // L'LLM risponde SOLO alle domande fatte con il microfono.
+                // Il parlato guidato dagli eventi usa esclusivamente le frasi
+                // pre-scritte del template (getFallbackPhrase), senza LLM.
+                if (!userText) {
+                    const fallback = this.petAI.getFallbackPhrase(pet);
+                    this.petSpeech = fallback;
+                    this.speechTimer = this.speechShowDuration + fallback.length * 2;
+                    this.speechOpacity = 1;
+                    if (this.petSynth) this.petSynth.speak(fallback);
+                    onFinal?.(fallback);
+                    this.saveGame();
+                    return;
+                }
+
                 // Interrompi una generazione precedente per liberare la GPU
                 if (this.speechToken > 1) {
                     this.petAI.interrupt();

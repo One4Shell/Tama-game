@@ -3504,6 +3504,13 @@ export class PetAI extends EventTarget {
     async generateSpeech(pet, { event = null, userText = null, onChunk = null } = {}) {
         if (!pet || !pet.canAct()) return null;
 
+        // L'LLM risponde SOLO alle domande fatte con il microfono (userText).
+        // Senza input dell'utente (parlato guidato dagli eventi) usiamo
+        // esclusivamente le frasi pre-scritte del template, mai il modello.
+        if (!userText) {
+            return this.getFallbackPhrase(pet);
+        }
+
         if (!this.ready || !this.engine) {
             return this.getFallbackPhrase(pet);
         }
