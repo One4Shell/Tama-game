@@ -3524,7 +3524,7 @@ function getUniquePetName() {
             // Sincronizza i controlli della modale con i valori salvati.
             const syncSettingsControls = () => {
                 if (soundToggle) soundToggle.checked = getSetting(SET_SOUND_KEY, '1') !== '0';
-                if (voiceToggle) voiceToggle.checked = getSetting(SET_VOICE_KEY, '1') !== '0';
+                if (voiceToggle) voiceToggle.checked = getSetting(SET_VOICE_KEY, '0') !== '0';
                 if (langSelect) langSelect.value = getSetting(SET_LANG_KEY, 'en-US');
                 const aiEnabled = getSetting(SET_AI_KEY, '0') !== '0';
                 if (aiToggle) aiToggle.checked = aiEnabled;
@@ -3834,7 +3834,7 @@ function getUniquePetName() {
             // Applica il mute suoni e voce salvato all'avvio (dopo la creazione
             // degli oggetti, altrimenti il mute non verrebbe mai applicato).
             if (window.audio) window.audio.setEnabled(getSetting(SET_SOUND_KEY, '1') !== '0');
-            synth.setEnabled(getSetting(SET_VOICE_KEY, '1') !== '0');
+            synth.setEnabled(getSetting(SET_VOICE_KEY, '0') !== '0');
 
             // === Mic (azione nel menu) ===
             if (recognizer.isSupported()) {
