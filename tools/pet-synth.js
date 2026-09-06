@@ -36,13 +36,18 @@ export class PetSynth extends EventTarget {
 
     _loadVoices() {
         const voices = this.synth.getVoices();
-        // Pick an English voice, preferring en-US/en-GB and female-named voices.
+        // Pick a voice matching this.lang (preferring an exact match, then the
+        // base language, then female-named voices), falling back to English.
+        const lang = (this.lang || "en-US").toLowerCase();
+        const base = lang.split("-")[0];
+        const female = (v) => v.name.toLowerCase().includes("female");
         this.voice =
-            voices.find((v) => v.lang.startsWith("en-US") && v.name.toLowerCase().includes("female")) ||
-            voices.find((v) => v.lang.startsWith("en-GB") && v.name.toLowerCase().includes("female")) ||
-            voices.find((v) => v.lang.startsWith("en-US")) ||
-            voices.find((v) => v.lang.startsWith("en-GB")) ||
-            voices.find((v) => v.lang.startsWith("en")) ||
+            voices.find((v) => v.lang.toLowerCase() === lang && female(v)) ||
+            voices.find((v) => v.lang.toLowerCase() === lang) ||
+            voices.find((v) => v.lang.toLowerCase().startsWith(base) && female(v)) ||
+            voices.find((v) => v.lang.toLowerCase().startsWith(base)) ||
+            voices.find((v) => v.lang.toLowerCase().startsWith("en") && female(v)) ||
+            voices.find((v) => v.lang.toLowerCase().startsWith("en")) ||
             voices[0] ||
             null;
     }

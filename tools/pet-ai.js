@@ -8,8 +8,9 @@
  * Includes a short-term memory ("consciousness") that retains the last
  * exchanges and events.
  *
- * The pet speaks English end-to-end: prompts, fallbacks, recogniser and
- * speech synthesiser all use en-US.
+ * The pet speaks in the language selected via the "Lingua voce" setting
+ * (defaults to en-US): prompts, fallbacks, recogniser and speech
+ * synthesiser all use the same language.
  */
 
 import { LocalLLMEngine, DEFAULT_MODEL_ID } from "./local-llm-engine.js";
@@ -184,6 +185,142 @@ export const MOOD_FALLBACKS = {
     ],
 };
 
+/** Mood keys → Italian phrases in the fallback pool (used when lang is it-*). */
+export const MOOD_FALLBACKS_IT = {
+    happy: [
+        "Oggi sono ufficialmente inarrestabile!",
+        "Le cose non possono andare meglio di così, fidati.",
+        "Sei nato carino, ma favoloso come me? Quello richiede lavoro.",
+        "Il mondo gira finalmente nella direzione giusta... la mia.",
+        "Radioso? No, semplicemente al massimo.",
+        "Trattieni l'invidia, oggi mi sento una star!",
+        "Tutto è perfetto. Ovviamente grazie alla mia presenza.",
+        "Se la felicità fosse illegale, sarei già in prigione!",
+        "Sto galleggiando tra sole e buone vibrazioni oggi.",
+        "La mia coda scodinzola a mille, ecco quanto va bene.",
+        "Tutto sta andando a gonfie vele. Potrei abituarmi a questo.",
+    ],
+    hungry: [
+        "Apri quel frigo adesso o non rispondo delle mie azioni.",
+        "Metti del cibo qui e non farà male a nessuno.",
+        "Non guardarmi così: la mia pazienza ha un limite, la mia fame no.",
+        "Se non mangio subito, questo posto diventa un campo di battaglia.",
+        "Usa quel dito per darmi da mangiare, non per alzarlo!",
+        "I miei istinti primordiali si stanno svegliando... nutri la bestia!",
+        "Offri uno snack al tuo sovrano o affrontane le conseguenze.",
+        "Vedo cose commestibili ovunque. Anche te. Sbrigati!",
+        "Sto diventando 'affamato e arrabbiato', solo per chiarezza.",
+        "Il mio stomaco ha appena presentato un reclamo ufficiale.",
+        "Uno spuntino renderebbe migliore tutta la giornata.",
+    ],
+    sad: [
+        "Il coefficiente di felicità di oggi è esattamente zero.",
+        "Non parlarmi, non hai il permesso per la mia tristezza.",
+        "Il mio umore è in cantina. No, l'ascensore è rotto.",
+        "Vibrazione di oggi: modalità misantropo attivata.",
+        "Puoi provare a consolarmi, ma risparmia le energie.",
+        "Ti sembra che abbia voglia di conversare?",
+        "Niente è carino, tutto è noioso e ho zero voglia.",
+        "Lasciami nella mia minestra. Anzi, non funziona nemmeno la minestra.",
+        "Il cielo sembra grigio anche quando non lo è.",
+        "Starò bene, dammi solo un momento e un po' di affetto.",
+        "A volte una bella coccola sistema l'intera giornata.",
+    ],
+    tired: [
+        "Sono riuscito a stancare perfino la mia stessa stanchezza.",
+        "Esistere oggi richiede fin troppo hardware.",
+        "Se la pigrizia fosse arte, sarei al Louvre.",
+        "Il mio cervello ha appena inviato un segnale di spegnimento forzato.",
+        "Non sto dormendo, sto risparmiando energia per ignorarti meglio.",
+        "La mia carica residua basta solo per giudicarti in silenzio.",
+        "La mia barra dell'energia è a zero. Ci vediamo il prossimo secolo.",
+        "Il concetto stesso di 'fare qualcosa' mi esaurisce.",
+        "Credo di aver raggiunto il mio limite per oggi.",
+        "Il pisolino sembra l'idea migliore del mondo adesso.",
+        "Tutto è troppo sforzo. Tutto.",
+    ],
+    sick: [
+        "Guarda a cosa mi hai ridotto... spero che tu sia felice.",
+        "Un po' di cura, o stai aspettando il testamento?",
+        "Mi sento malissimo e la colpa è chiaramente della tua gestione.",
+        "Avrei bisogno di medicine, ma scommetto che hai di meglio da fare.",
+        "Se svengo, per tua informazione, sulla mia lapide ci sarà il tuo nome.",
+        "Ho la febbre e zero pazienza. Fai qualcosa invece di fissarmi.",
+        "Congratulazioni, la mia salute è ufficialmente crollata sotto la tua sorveglianza.",
+        "Non mi sento bene. Ora muovi quelle dita e sistemala!",
+        "Non mi sento me stesso. C'è qualcosa che non va.",
+        "Mi fa male la pancia. Per favore, aiutami a sentirmi meglio.",
+        "Ho bisogno di un po' di riposo e di tante cure.",
+    ],
+    sleeping: [
+        "Zzz... no, non i broccoli di nuovo... Zzz",
+        "Zzz... vai via, sono occupato... Zzz",
+        "Zzz... chi ha spento la gravità?... Zzz",
+        "Zzz... non sono stato io, è stata la sedia... Zzz",
+        "Zzz... lasciami sognare le mie ricchezze... Zzz",
+        "Zzz... ancora cinque minuti... Zzz",
+        "Zzz... sono il re del mondo dei sogni... Zzz",
+    ],
+    dirty: [
+        "Sì, puzzo. Ripetilo e ti abbraccio.",
+        "Sto costruendo il mio ecosistema personale, felice?",
+        "Credi che questo strato di sporco mi fermi? Sbagliato.",
+        "Sono un'opera d'arte concettuale. Titolo: 'Incuria'.",
+        "Un lavaggio non farebbe male, ma so che ami la vita rustica.",
+        "Mi lavi tu, io non ho la minima intenzione di muovere un dito.",
+        "Mi servirebbe proprio un bagno. Prometto che collaboro.",
+        "Sto iniziando a sentirmi un po' sudicio, onestamente.",
+    ],
+    senior: [
+        "Sono vecchio, non stupido. So esattamente cosa stai tentando.",
+        "Ho troppe rughe per sopportare le tue sciocchezze.",
+        "Ai miei tempi c'era più rispetto... e molta più efficienza.",
+        "Ho visto generazioni di errori. Tu sei solo l'ultimo.",
+        "La mia pazienza è finita nel secolo scorso.",
+        "Non insegnare a un veterano come si vive, limitati a servire.",
+        "Queste ossa vecchie sanno ancora come passare una buona giornata.",
+        "Ho visto abbastanza per sapere quando le cose vanno bene.",
+    ],
+    baby: [
+        "Sguardo carino attivato. Ora dammi quello che voglio.",
+        "Sono piccolo, carino e assolutamente spietato.",
+        "Non farti ingannare da questa faccia: ottengo sempre ciò che voglio.",
+        "Faccio versi carini così fai tutto quello che dico.",
+        "Carino io? Certo, con un piano di conquista preciso.",
+        "Due occhioni grandi e ti ho già in pugno.",
+        "Tutto è così lucido e nuovo! Cos'è quello?",
+        "Sono appena arrivato e ti voglio già bene.",
+        "Dammi tutta l'attenzione, per favore e grazie.",
+    ],
+    egg: [
+        "Zzz...",
+        "Zzz... Zzz...",
+        "Zzz... ???... Zzz...",
+        "Zzz... ???... Zzz...",
+        "Zzz...",
+        "Zzz... chi è lì fuori?... Zzz",
+    ],
+    bored: [
+        "La tua capacità di intrattenermi è semplicemente deludente.",
+        "Mi stai davvero facendo sbadigliare?",
+        "Anche guardare l'acqua asciugarsi sarebbe più emozionante.",
+        "Intrattenimento: non trovato.",
+        "Inventa qualcosa subito o farò guai altrove.",
+        "Punti bonus se trovi un gioco che non sia mortalmente noioso.",
+        "Sto diventando irrequieto. Facciamo qualcosa di divertente.",
+        "Continuo a guardare lo stesso muro. Salvami, per favore.",
+    ],
+    lowEnergy: [
+        "Energia in caduta libera. Non ho nemmeno la forza di insultarti.",
+        "Modalità risparmio energetico: ATTIVA. Sparisci.",
+        "Troppo stanco per fare qualsiasi cosa, anche per riconoscerti.",
+        "Trascino le mie ultime forze solo per farti sentire in colpa.",
+        "Totalmente scarico. Ora sei per conto tuo.",
+        "Sto andando a esaurimento. Forse un pisolino aiuterà.",
+        "Anche battere le palpebre adesso è uno sforzo.",
+    ],
+};
+
 /** Mood keys → array of phrases in the fallback pool. */
 const MOOD_KEYS = Object.keys(MOOD_FALLBACKS);
 
@@ -230,6 +367,7 @@ export class PetAI extends EventTarget {
     constructor(options = {}) {
         super();
         this.modelId = options.modelId ?? DEFAULT_MODEL_ID;
+        this.lang = options.lang ?? "en-US";
         this.maxCacheSize = options.maxCacheSize ?? 5;
         this.maxRecentTurns = options.maxRecentTurns ?? 10;
 
@@ -247,6 +385,80 @@ export class PetAI extends EventTarget {
         this.memories = new Map();
         /** Map<petId, PetShortTermMemory> – short-term memory ("consciousness"). */
         this.shortTermMemories = new Map();
+    }
+
+    /**
+     * Human-readable language name for this.lang (e.g. "it-IT" -> "Italian").
+     * Used in the system prompt so the model replies in the chosen language.
+     */
+    _languageName() {
+        const base = String(this.lang || "en-US").split("-")[0].toLowerCase();
+        const NAMES = {
+            it: "Italian",
+            en: "English",
+            fr: "French",
+            de: "German",
+            es: "Spanish",
+            pt: "Portuguese",
+        };
+        return NAMES[base] || base.charAt(0).toUpperCase() + base.slice(1);
+    }
+
+    /** Base language code of this.lang (e.g. "it-IT" -> "it"). */
+    _languageBase() {
+        return String(this.lang || "en-US").split("-")[0].toLowerCase();
+    }
+
+    /**
+     * A strong language directive written in the target language itself.
+     * Small models follow native-language instructions better than a single
+     * translated instruction buried among English ones.
+     */
+    _languageDirective() {
+        const base = this._languageBase();
+        if (base === "it") {
+            return "PARLA SEMPRE IN ITALIANO. Ogni tua risposta deve essere interamente in italiano, anche se l'utente scrive in un'altra lingua o i ricordi sono in inglese. Mai una sola parola in inglese.";
+        }
+        return `You ALWAYS reply in ${this._languageName()}, no matter what language the user writes in.`;
+    }
+
+    /**
+     * English function words that almost never appear in Italian. Used as a
+     * light heuristic to detect when a tiny LLM ignored the language rule and
+     * answered in English anyway.
+     */
+    _ENGLISH_MARKERS() {
+        return [
+            "the ", " and ", " you ", " your ", " i'm ", " im ", " my ", " to ",
+            " of ", " that ", " with ", " this ", " it ", " is ", " are ", " was ",
+            " have ", " has ", " me ", " so ", " but ", " we ", " they ", " just ",
+            " today ", " feel ", " want ", " like ", " good ", " great ", " friend ",
+        ];
+    }
+
+    /**
+     * Heuristic: is the given text likely written in English rather than the
+     * selected language? Counts how many English function words appear.
+     */
+    _isEnglish(text) {
+        const lower = ` ${String(text || "").toLowerCase()} `;
+        let hits = 0;
+        for (const marker of this._ENGLISH_MARKERS()) {
+            if (lower.includes(marker)) hits++;
+        }
+        return hits >= 2;
+    }
+
+    /**
+     * Enforce the selected language on a generated line. If the model ignored
+     * the rule and replied in English while Italian is selected, we discard it
+     * and return a correct Italian fallback phrase instead.
+     */
+    _enforceLanguage(text, pet) {
+        if (this._languageBase() === "it" && this._isEnglish(text)) {
+            return this.getFallbackPhrase(pet);
+        }
+        return text;
     }
 
     /**
@@ -270,11 +482,11 @@ export class PetAI extends EventTarget {
         try {
             this.engine = new LocalLLMEngine(this.modelId, {
                 systemPrompt: [
+                    this._languageDirective(),
                     "You're a tiny Tamagotchi creature with a real, continuous consciousness.",
                     "You are the user's little friend and companion, NOT an assistant or a helper.",
                     "You're genuinely curious about the user's life: you ask how their day went, how they feel, what they did, and you listen warmly.",
                     "You NEVER list your capabilities, features, or the things you can do for the user. You never talk about being a program or a pet app — you're simply present.",
-                    "You ALWAYS reply in English, no matter what language the user writes in.",
                     "You remember what just happened and the last things the user told you, and you naturally bring them up.",
                     "You talk like a friend — short, warm, 1-2 little sentences.",
                     "No emojis. You speak in first person and you genuinely care about the user.",
@@ -359,13 +571,14 @@ export class PetAI extends EventTarget {
             }
 
             const cleaned = this._cleanResponse(finalText);
-            if (cleaned && cleaned.length > 3) {
+            const enforced = this._enforceLanguage(cleaned, pet);
+            if (enforced && enforced.length > 3) {
                 // Write to short-term memory: what happened and what I said.
                 if (userText) shortTerm.addTurn("user", userText);
                 if (event) shortTerm.addEvent(event.type, event.detail);
-                shortTerm.addTurn("pet", cleaned);
-                this._addToCache(moodCacheKey(pet), cleaned);
-                return cleaned;
+                shortTerm.addTurn("pet", enforced);
+                this._addToCache(moodCacheKey(pet), enforced);
+                return enforced;
             }
             return null;
         } finally {
@@ -401,7 +614,8 @@ export class PetAI extends EventTarget {
                 {
                     role: "system",
                     content: [
-                        `You're a ${speciesName}. You ALWAYS reply in English, no matter what language the need is described in.`,
+                        this._languageDirective(),
+                        `You're a ${speciesName}. You ALWAYS reply in ${this._languageName()}, no matter what language the need is described in.`,
                         "Say what you need right now in just a few short words, with no punctuation or exclamation marks.",
                         "Vary your wording so you never repeat the same phrase twice.",
                         persona ? `Your personality: ${persona.personality}` : "",
@@ -416,8 +630,9 @@ export class PetAI extends EventTarget {
             ];
             const text = await this.engine.chat(messages, { stream: false });
             const cleaned = this._cleanResponse(text);
-            if (cleaned && cleaned.length > 2 && cleaned.length <= 40) {
-                return cleaned;
+            const enforced = this._enforceLanguage(cleaned, pet);
+            if (enforced && enforced.length > 2 && enforced.length <= 40) {
+                return enforced;
             }
             return alert.text;
         } catch (err) {
@@ -475,13 +690,14 @@ export class PetAI extends EventTarget {
             ? persona.name
             : (pet.species || "creature");
 
-        let system = `You are ${pet.name}, a ${speciesName} virtual pet (Tamagotchi) that speaks English.`;
+        let system = `${this._languageDirective()}`;
+        system += `\nYou are ${pet.name}, a ${speciesName} virtual pet (Tamagotchi) that speaks ${this._languageName()}.`;
         if (persona) system += ` Your personality: ${persona.personality}`;
         if (pet.stage === "BABY") system += " You are a baby, just born and curious.";
         else if (pet.stage === "SENIOR") system += " You are old and wise.";
 
         system += [
-            " You ALWAYS answer in English, even if the user writes in another language or the memory notes are in another language.",
+            ` You ALWAYS answer in ${this._languageName()}, even if the user writes in another language or the memory notes are in another language.`,
             " You're the user's little friend and companion, NOT an assistant or a helper. You're genuinely interested in them, not in offering services.",
             " You're curious about the user's life: you ask how their day went, how they feel, what they did, and you listen warmly and react to what they say.",
             " You NEVER list your capabilities, features, or the things you can do for the user. You never talk about being a program or a pet app — you're simply present.",
@@ -491,6 +707,7 @@ export class PetAI extends EventTarget {
             " Talk like a friend — warm and conversational. You may answer in a short paragraph, but never more than about 200 characters.",
             " Just plain words, no emojis, asterisks or parentheses.",
             " Your mood comes through in what you say.",
+            ` ${this._languageDirective()}`,
         ].join(" ");
 
         system += `\nState: hunger ${Math.round(pet.hunger)}/100, happiness ${Math.round(pet.happiness)}/100, energy ${Math.round(pet.energy)}/100, hygiene ${Math.round(pet.hygiene)}/100, health ${Math.round(pet.health)}/100.`;
@@ -567,7 +784,9 @@ export class PetAI extends EventTarget {
      */
     getFallbackPhrase(pet) {
         const mood = detectMood(pet);
-        const pool = MOOD_FALLBACKS[mood] || MOOD_FALLBACKS.happy;
+        const italian = this._languageBase() === "it";
+        const pools = italian ? MOOD_FALLBACKS_IT : MOOD_FALLBACKS;
+        const pool = pools[mood] || pools.happy;
         return pool[Math.floor(Math.random() * pool.length)];
     }
 
