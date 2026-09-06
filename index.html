@@ -692,6 +692,8 @@
     </div>
 
     <!-- ASCII-ART SPRITES: un file per sprite in sprites/ (registrati in window.TAMA_ART) -->
+    <script src="sprites/breed.js"></script>
+    <script src="sprites/egg_crack.js"></script>
     <script src="sprites/blob.js"></script>
     <script src="sprites/kitty.js"></script>
     <script src="sprites/dino.js"></script>
@@ -702,7 +704,6 @@
     <script src="sprites/clean.js"></script>
     <script src="sprites/sleep.js"></script>
     <script src="sprites/heal.js"></script>
-    <script src="sprites/breed.js"></script>
     <script src="sprites/poop.js"></script>
     <script src="sprites/tomb.js"></script>
     <script src="sprites/trophy.js"></script>
@@ -758,6 +759,12 @@
                 if (!this.ctx) return;
                 this.playBeep(220, 'sawtooth', 0.15);
                 setTimeout(() => this.playBeep(180, 'sawtooth', 0.2), 140);
+            }
+
+            playCrack() {
+                if (!this.ctx) return;
+                this.playBeep(140, 'sawtooth', 0.08);
+                setTimeout(() => this.playBeep(220, 'sawtooth', 0.06), 30);
             }
 
             playHatch() {
@@ -977,7 +984,7 @@ function getUniquePetName() {
         // I range sono in secondi: il valore effettivo è casuale tra min e max
         const CONFIG = {
             eggSpawn:  { min: 1, max: 2 },  // attesa prima che appaia un nuovo uovo
-            eggHatch:  { min: 1,  max: 5 },  // tempo di schiusa dell'uovo
+            eggTaps:   { min: 6, max: 10 }, // tap necessari per rompere l'uovo (schiusa manuale)
             evolution: {
                 babyToAdult: 30,             // secondi di età: BABY -> ADULT
                 adultToSenior: 80,           // ADULT -> SENIOR
@@ -1031,7 +1038,8 @@ function getUniquePetName() {
                 this.poopCount = data.poopCount || 0;
                 
                 this.ageSeconds = data.ageSeconds || 0;
-                this.eggTimer = data.eggTimer !== undefined ? data.eggTimer : randRange(CONFIG.eggHatch);
+                this.eggTapsNeed = data.eggTapsNeed !== undefined ? data.eggTapsNeed : Math.round(randRange(CONFIG.eggTaps));
+                this.eggTapsDone = data.eggTapsDone || 0;
                 this.highCareTimer = data.highCareTimer || 0;
                 this.canLayEgg = data.canLayEgg || false;
                 
@@ -1063,17 +1071,26 @@ function getUniquePetName() {
                 this.name = getUniquePetName();
             }
 
+            // Progressione di rottura dell'uovo: ogni chiamata aggiunge una crepa.
+            // Restituisce true quando l'uovo si schiude (passa a BABY).
+            tapEgg() {
+                if (this.stage !== 'EGG') return false;
+                this.eggTapsDone = Math.min(this.eggTapsNeed, this.eggTapsDone + 1);
+                if (this.eggTapsDone >= this.eggTapsNeed) {
+                    this.stage = 'BABY';
+                    if (!this.species) this.assignRandomSpecies();
+                    this.justHatched = true;
+                    return true;
+                }
+                return false;
+            }
+
             update(deltaSeconds) {
                 if (this.stage === 'DEAD' || this.stage === 'DEPARTED') return;
 
                 if (this.stage === 'EGG') {
-                    this.eggTimer -= deltaSeconds;
-                    if (this.eggTimer <= 0) {
-                        this.stage = 'BABY';
-                        if (!this.species) this.assignRandomSpecies();
-                        this.justHatched = true;
-                        audio.playHatch();
-                    }
+                    // L'uovo non si schiude da solo: resta finche il giocatore
+                    // non lo rompe a colpi di tap (vedi tapEgg).
                     return;
                 }
 
@@ -1249,6 +1266,8 @@ function getUniquePetName() {
                 this.animFrame = 0;
                 this.actionAnimation = null;
                 this.actionAnimTimer = 0;
+                this.eggShakeTimer = 0;
+                this.hatchFx = null;
 
                 this.MENU_ITEMS = ['MIC', 'FEED', 'PLAY', 'CLEAN', 'SLEEP', 'HEAL'];
                 this.menuOpen = false;
@@ -1757,6 +1776,43 @@ function getUniquePetName() {
                 this.actionAnimTimer = 30;
             }
 
+            // Animazione di schiusa: il guscio trema, si spacca e i pezzi volano via.
+            startHatchFx(pet) {
+                this.hatchFx = {
+                    pet,
+                    t: 0,
+                    duration: 60,             // ~1s a 60fps
+                    phase: 'shake',           // shake -> crack -> pop
+                    phaseEnd: 18,
+                    halfOffset: 0,            // distanza delle meta' di guscio dal centro
+                    fragments: []
+                };
+                // Frammenti di guscio che volano via
+                const colors = ['#1f2a08', '#526333', '#879864'];
+                for (let i = 0; i < 7; i++) {
+                    this.hatchFx.fragments.push({
+                        x: 0, y: 0,
+                        vx: (Math.random() - 0.5) * 3.2,
+                        vy: -Math.random() * 2.4 - 0.6,
+                        size: 2 + Math.random() * 2.5,
+                        color: colors[Math.floor(Math.random() * colors.length)]
+                    });
+                }
+            }
+
+            // Presenta al giocatore il BABY appena nato (modale + frase AI).
+            presentHatch(pet) {
+                if (!pet || pet.stage === 'EGG') return;
+                if (this.isOpen) {
+                    this.showModal('SCHIUSO!', `L'uovo si è schiuso: è nato ${pet.name}!`);
+                }
+                if (this.petAI && pet.canAct()) {
+                    this.startLiveSpeech(pet, {
+                        event: { type: 'HATCH', detail: 'I just hatched from my egg and I am seeing the world for the first time! React with wonder and curiosity in a baby-like phrase.' }
+                    });
+                }
+            }
+
             startMiniGame() {
                 this.miniGameActive = true;
                 this.menuOpen = false;
@@ -1849,13 +1905,8 @@ function getUniquePetName() {
                 if (hatched) {
                     hatched.justHatched = false;
                     this.achievements.record('HATCH', hatched.species);
-                    if (this.isOpen) {
-                        this.showModal('SCHIUSO!', `L'uovo si è schiuso: è nato ${hatched.name}!`);
-                    }
-                    if (this.petAI && hatched.canAct()) {
-                        this.startLiveSpeech(hatched, {
-                            event: { type: 'HATCH', detail: 'I just hatched from my egg and I am seeing the world for the first time! React with wonder and curiosity in a baby-like phrase.' }
-                        });
+                    if (!this.hatchFx) {
+                        this.startHatchFx(hatched);
                     }
                     this.checkAchievements();
                 }
@@ -1889,6 +1940,17 @@ function getUniquePetName() {
                 }
 
                 if (this.shopFlash && --this.shopFlash.timer <= 0) this.shopFlash = null;
+
+                if (this.eggShakeTimer > 0) this.eggShakeTimer--;
+
+                if (this.hatchFx) {
+                    this.hatchFx.t++;
+                    if (this.hatchFx.t >= this.hatchFx.duration) {
+                        const p = this.hatchFx.pet;
+                        this.hatchFx = null;
+                        if (p && p.stage !== 'EGG') this.presentHatch(p);
+                    }
+                }
 
                 if (this.animFrame % 60 === 0) {
                     this.checkAchievements();
@@ -1989,8 +2051,10 @@ function getUniquePetName() {
 
                 if (pet.stage === 'DEAD') {
                     this.drawTombstone(centerX, centerY);
+                } else if (this.hatchFx && this.hatchFx.pet.id === pet.id) {
+                    this.drawHatchFx(centerX, centerY);
                 } else if (pet.stage === 'EGG') {
-                    this.drawEgg(centerX, centerY);
+                    this.drawEgg(pet, centerX, centerY);
                 } else {
                     this.drawPetSprite(pet, centerX, centerY);
                 }
@@ -2171,10 +2235,111 @@ function getUniquePetName() {
                 c.restore();
             }
 
-            drawEgg(x, y) {
-                const wobble = Math.sin(this.animFrame * 0.2) * 3;
+            drawEgg(pet, x, y) {
                 const s = Math.max(1, Math.round(3 * (this.canvas.height / 180) * 0.7));
+                const vs = this.canvas.height / 180;
+
+                // Tremolio idle + shake crescente con la % e breve shake a ogni tap
+                const pct = pet.eggTapsDone / pet.eggTapsNeed;
+                let wobble = Math.sin(this.animFrame * 0.2) * 3;
+                if (this.eggShakeTimer > 0) {
+                    wobble += (Math.random() - 0.5) * (4 + pct * 6);
+                } else {
+                    wobble += Math.sin(this.animFrame * 0.4) * pct * 2;
+                }
+
+                // Guscio base
                 this.drawPixelSprite(this.SPRITES.BREED, x - 8 * s + wobble, y - 8 * s, s);
+
+                // Crepe: rivelate in base alla percentuale di rottura
+                const cracks = (window.TAMA_ART && window.TAMA_ART.EGG_CRACKS) || [];
+                const count = Math.min(cracks.length, Math.ceil(pct * cracks.length));
+                for (let i = 0; i < count; i++) {
+                    this.drawPixelSprite(cracks[i], x - 8 * s + wobble, y - 8 * s, s);
+                }
+
+                // HUD: invito a tappare sopra l'uovo (nessuna barra di progresso)
+                this.ctx.font = 'bold ' + Math.round(11 * vs) + 'px monospace';
+                this.ctx.textAlign = 'center';
+                this.ctx.fillStyle = '#1f2a08';
+                if (pct <= 0 && Math.floor(this.animFrame * 0.1) % 2 === 0) {
+                    this.ctx.fillText('TAP!', x + wobble, y - 12 * vs);
+                }
+                this.ctx.textAlign = 'left';
+            }
+
+            drawHatchFx(cx, cy) {
+                const fx = this.hatchFx;
+                if (!fx) return;
+                const H = this.canvas.height;
+                const vs = H / 180;
+                const s = Math.max(1, Math.round(3 * vs * 0.7));
+
+                if (fx.phase === 'shake') {
+                    const shake = (Math.random() - 0.5) * 10;
+                    this.drawPixelSprite(this.SPRITES.BREED, cx - 8 * s + shake, cy - 8 * s, s);
+                    const cracks = (window.TAMA_ART && window.TAMA_ART.EGG_CRACKS) || [];
+                    for (let i = 0; i < cracks.length; i++) {
+                        this.drawPixelSprite(cracks[i], cx - 8 * s + shake, cy - 8 * s, s);
+                    }
+                    if (fx.t >= fx.phaseEnd) {
+                        fx.phase = 'crack';
+                        fx.phaseEnd = 42;
+                        audio.playCrack();
+                    }
+                    return;
+                }
+
+                // phase 'crack' / 'pop': il guscio si spacca in due meta' che si allontanano
+                fx.halfOffset += (fx.phase === 'crack' ? 0.6 : 0.9) * s;
+                const leftX = cx - 8 * s - fx.halfOffset;
+                const rightX = cx + 8 * s + fx.halfOffset;
+
+                this.drawEggHalf(leftX, cy - 8 * s, s, true);
+                this.drawEggHalf(rightX, cy - 8 * s, s, false);
+
+                // Frammenti che volano via
+                fx.fragments.forEach(f => {
+                    f.x += f.vx * s * 0.4;
+                    f.y += f.vy * s * 0.4;
+                    f.vy += 0.12;
+                    this.ctx.fillStyle = f.color;
+                    const sz = Math.max(1, f.size * s * 0.4);
+                    this.ctx.fillRect(cx + f.x * s * 0.3, cy - 8 * s + f.y * s * 0.3, sz, sz);
+                });
+
+                // Fase pop: il BABY appare con un effetto di scala
+                if (fx.phase === 'pop') {
+                    const pet = fx.pet;
+                    const prog = (fx.t - fx.phaseEnd) / (fx.duration - fx.phaseEnd);
+                    const popScale = 0.4 + Math.min(1, prog) * 0.7;
+                    const def = SPECIES[pet.species] || SPECIES.BLOB;
+                    const scale = Math.max(1, Math.round(this.petScale(pet) * popScale));
+                    const ox = cx - 8 * scale;
+                    const oy = cy - 8 * scale;
+                    this.drawPixelSprite(def.sprite, ox, oy, scale);
+                    this.drawPetFace(pet, ox, oy, scale);
+                } else if (fx.t >= fx.phaseEnd) {
+                    fx.phase = 'pop';
+                }
+            }
+
+            // Metà di guscio: ritaglia la sprite BREED a sinistra (isLeft) o destra (isRight),
+            // divise al centro (colonna 8 della griglia 16x16).
+            drawEggHalf(drawX, drawY, s, isLeft) {
+                const map = this.SPRITES.BREED;
+                const c = this.ctx;
+                for (let r = 0; r < map.length; r++) {
+                    const row = map[r];
+                    for (let col = 0; col < row.length; col++) {
+                        if (isLeft && col >= 8) continue;
+                        if (!isLeft && col < 8) continue;
+                        const ch = row[col];
+                        if (ch === '.') continue;
+                        c.fillStyle = ch === '#' ? '#1f2a08' : (ch === '-' ? '#879864' : '#526333');
+                        c.fillRect(drawX + col * s, drawY + r * s, s, s);
+                    }
+                }
             }
 
             drawTombstone(x, y) {
@@ -2377,6 +2542,31 @@ function getUniquePetName() {
                         return;
                     }
                 }
+
+                // Se il pet attivo e' un uovo: un tap nella zona dell'uovo lo rompe.
+                const pet = this.getActivePet();
+                if (pet && pet.stage === 'EGG' && this.eggHitTest(x, y)) {
+                    const hatched = pet.tapEgg();
+                    audio.playCrack();
+                    this.eggShakeTimer = 6;
+                    if (hatched) {
+                        // La schiusa vera e propria (FX + modale) parte in update()
+                        // tramite il flag justHatched.
+                        this.startHatchFx(pet);
+                    }
+                    this.saveGame();
+                }
+            }
+
+            eggHitTest(x, y) {
+                const W = this.canvas.width;
+                const H = this.canvas.height;
+                const bob = Math.sin(this.animFrame * 0.1) * 3;
+                const cx = W * 0.5;
+                const cy = H * 0.5 + bob;
+                const s = Math.max(1, Math.round(3 * (H / 180) * 0.7));
+                const radius = Math.max(48, 8 * s + 34);
+                return (x - cx) * (x - cx) + (y - cy) * (y - cy) <= radius * radius;
             }
 
             hitCloseZone(x, y) {
@@ -2781,7 +2971,8 @@ function getUniquePetName() {
 
                     c.font = 'bold ' + Math.round(12 * hs) + 'px monospace';
                     c.textAlign = 'right';
-                    c.fillText(`${fateIcon[pet.fate] || '?'} ${pet.fate === 'EGG' ? 'attesa' : formatAge(pet.ageSeconds)}`, 302 * hs, y + 8 * vs);
+                    const fateAge = pet.fate === 'EGG' ? 'uovo' : formatAge(pet.ageSeconds);
+                    c.fillText(`${fateIcon[pet.fate] || '?'} ${fateAge}`, 302 * hs, y + 8 * vs);
                     c.textAlign = 'left';
 
                     c.font = Math.round(10 * hs) + 'px monospace';
