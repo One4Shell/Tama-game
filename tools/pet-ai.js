@@ -378,6 +378,9 @@ export class PetAI extends EventTarget {
         this.generating = false;
         this._idleResolve = null;
 
+        /** Incremented on every load/switch/abort so stale in-flight inits are discarded. */
+        this._initToken = 0;
+
         /** Map<moodKey, string[]> – generated phrases (safety net only). */
         this.cache = new Map();
 
@@ -473,7 +476,59 @@ export class PetAI extends EventTarget {
         return this._initPromise;
     }
 
+    /**
+     * Build a LocalLLMEngine for the given model and attach the shared
+     * listeners. Every listener ignores events whose load token is no longer
+     * current, so a superseded/cancelled load never marks this PetAI ready.
+     */
+    _createEngine(modelId, token) {
+        const engine = new LocalLLMEngine(modelId, {
+            systemPrompt: [
+                this._languageDirective(),
+                "You're a tiny Tamagotchi creature with a real, continuous consciousness.",
+                "You are the user's little friend and companion, NOT an assistant or a helper.",
+                "You're genuinely curious about the user's life: you ask how their day went, how they feel, what they did, and you listen warmly.",
+                "You NEVER list your capabilities, features, or the things you can do for the user. You never talk about being a program or a pet app — you're simply present.",
+                "You remember what just happened and the last things the user told you, and you naturally bring them up.",
+                "You talk like a friend — short, warm, 1-2 little sentences.",
+                "No emojis. You speak in first person and you genuinely care about the user.",
+                "You remember names, preferences and personal details.",
+            ].join(" "),
+            temperature: 0.8,
+        });
+
+        engine.addEventListener("statuschange", (e) => {
+            if (token !== this._initToken) return;
+            // Only mark the pet ready when the reporting engine is the active one
+            // (during a lazy swap the old engine stays active until the new is up).
+            if (e.detail === "ready" && engine === this.engine) {
+                this.ready = true;
+            }
+            this.dispatchEvent(new CustomEvent("statuschange", { detail: e.detail }));
+        });
+
+        engine.addEventListener("progress", (e) => {
+            if (token !== this._initToken) return;
+            this.dispatchEvent(
+                new CustomEvent("progress", { detail: e.detail })
+            );
+        });
+
+        engine.addEventListener("fallback", (e) => {
+            if (token !== this._initToken) return;
+            console.warn(
+                `[PetAI] Model failed; fell back to "${e.detail.label}" (${e.detail.modelId}).`
+            );
+            this.dispatchEvent(
+                new CustomEvent("fallback", { detail: e.detail })
+            );
+        });
+
+        return engine;
+    }
+
     async _doInit() {
+        const token = ++this._initToken;
         try {
             if (!this.enabled) {
                 console.warn("[PetAI] AI disabled. Fallback phrases only.");
@@ -489,57 +544,117 @@ export class PetAI extends EventTarget {
                 return;
             }
 
-            this.engine = new LocalLLMEngine(this.modelId, {
-                systemPrompt: [
-                    this._languageDirective(),
-                    "You're a tiny Tamagotchi creature with a real, continuous consciousness.",
-                    "You are the user's little friend and companion, NOT an assistant or a helper.",
-                    "You're genuinely curious about the user's life: you ask how their day went, how they feel, what they did, and you listen warmly.",
-                    "You NEVER list your capabilities, features, or the things you can do for the user. You never talk about being a program or a pet app — you're simply present.",
-                    "You remember what just happened and the last things the user told you, and you naturally bring them up.",
-                    "You talk like a friend — short, warm, 1-2 little sentences.",
-                    "No emojis. You speak in first person and you genuinely care about the user.",
-                    "You remember names, preferences and personal details.",
-                ].join(" "),
-                temperature: 0.8,
-            });
+            const engine = this._createEngine(this.modelId, token);
+            this.engine = engine;
+            await engine.init();
 
-            this.engine.addEventListener("statuschange", (e) => {
-                if (e.detail === "ready") {
-                    this.ready = true;
-                    this.dispatchEvent(new CustomEvent("statuschange", { detail: "ready" }));
-                } else if (e.detail === "generating") {
-                    this.dispatchEvent(new CustomEvent("statuschange", { detail: "generating" }));
-                } else if (e.detail === "idle") {
-                    this.dispatchEvent(new CustomEvent("statuschange", { detail: "idle" }));
-                } else {
-                    this.dispatchEvent(new CustomEvent("statuschange", { detail: e.detail }));
-                }
-            });
+            if (token !== this._initToken) {
+                // Superseded or aborted while downloading: discard the model.
+                try { await engine.unload(); } catch { /* ignore */ }
+                if (this.engine === engine) this.engine = null;
+                this.ready = false;
+                return;
+            }
 
-            this.engine.addEventListener("progress", (e) => {
-                this.dispatchEvent(
-                    new CustomEvent("progress", { detail: e.detail })
-                );
-            });
-
-            this.engine.addEventListener("fallback", (e) => {
-                console.warn(
-                    `[PetAI] Initial model failed; fell back to "${e.detail.label}" (${e.detail.modelId}).`
-                );
-                this.dispatchEvent(
-                    new CustomEvent("fallback", { detail: e.detail })
-                );
-            });
-
-            await this.engine.init();
+            this.modelId = engine.modelId; // reflect any auto-fallback tier
         } catch (err) {
+            if (token !== this._initToken) return; // stale failure: ignore
             console.warn("[PetAI] Init failed, using fallback:", err.message);
             this.ready = false;
             this.dispatchEvent(new CustomEvent("statuschange", { detail: "error" }));
         } finally {
-            this._initPromise = null;
+            if (token === this._initToken) this._initPromise = null;
         }
+    }
+
+    /**
+     * Switch the active LLM model without tearing down the current one.
+     * The current engine stays live while the new model downloads (lazy swap)
+     * and is only replaced once the new one is ready. On failure the previous
+     * model keeps working.
+     *
+     * @param {string} newModelId Target model id
+     * @param {boolean} [enabled] Desired AI state (default: keep current)
+     * @returns {Promise<{ok: boolean, modelId?: string, error?: Error, cancelled?: boolean}>}
+     */
+    async switchModel(newModelId, enabled = this.enabled) {
+        const token = ++this._initToken;
+        const prevEngine = this.engine;
+        const prevModelId = this.modelId;
+        const prevEnabled = this.enabled;
+        this._initPromise = null;
+
+        this.enabled = enabled;
+        this.modelId = newModelId;
+
+        // AI disabled: release whatever model is active and stop.
+        if (!enabled) {
+            if (prevEngine) {
+                // Fire-and-forget: non bloccare il caller (evita race con Annulla).
+                prevEngine.unload().catch(() => {});
+            }
+            this.engine = null;
+            this.ready = false;
+            if (token === this._initToken) {
+                this.dispatchEvent(new CustomEvent("statuschange", { detail: "disabled" }));
+            }
+            return { ok: true, modelId: newModelId };
+        }
+
+        if (!LocalLLMEngine.isSupported()) {
+            this.ready = false;
+            this.dispatchEvent(new CustomEvent("statuschange", { detail: "unsupported" }));
+            return { ok: false, error: new Error("WebGPU is not supported in this browser.") };
+        }
+
+        // The requested model is already the live one: nothing to do.
+        // (Confronta con il modello dell'engine attivo, non con this.modelId
+        // che durante un lazy swap in corso punta ancora al target in-flight.)
+        if (prevEngine && prevEngine.modelId === newModelId && this.ready) {
+            return { ok: true, modelId: newModelId };
+        }
+
+        const newEngine = this._createEngine(newModelId, token);
+        try {
+            await newEngine.init();
+        } catch (err) {
+            if (token === this._initToken) {
+                // Keep the previous engine alive and restore the model/state it
+                // actually exposes (this.modelId may be a stale in-flight target).
+                this.modelId = prevEngine ? prevEngine.modelId : prevModelId;
+                this.enabled = prevEnabled;
+                this.dispatchEvent(new CustomEvent("statuschange", { detail: "error" }));
+            }
+            return { ok: false, error: err };
+        }
+
+        if (token !== this._initToken) {
+            // Superseded by a newer load or explicitly aborted: discard the model.
+            try { await newEngine.unload(); } catch { /* ignore */ }
+            return { ok: false, cancelled: true };
+        }
+
+        // Success: swap to the new engine, then free the old one.
+        this.engine = newEngine;
+        this.ready = true;
+        this.modelId = newEngine.modelId; // reflect any auto-fallback tier
+        if (prevEngine) {
+            // Fire-and-forget: libera il vecchio engine senza bloccare il caller,
+            // così il commit del reload resta sincrono (nessuna race con Annulla).
+            prevEngine.unload().catch(() => {});
+        }
+        // Note: the engine already forwarded its own "ready" statuschange
+        // while downloading (token was still current), so the UI is updated.
+        return { ok: true, modelId: this.modelId, fallback: this.modelId !== newModelId };
+    }
+
+    /**
+     * Invalidate any in-flight model load. A pending download (if any) is
+     * discarded when it completes; the currently active engine is untouched.
+     */
+    abortPending() {
+        this._initToken++;
+        this._initPromise = null;
     }
 
     /**
@@ -858,6 +973,7 @@ export class PetAI extends EventTarget {
 
     /** Unload the model to free memory. */
     async unload() {
+        this._initToken++; // any in-flight load becomes stale
         if (this.engine) {
             await this.engine.unload();
             this.engine = null;

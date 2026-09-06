@@ -706,6 +706,9 @@
                         <div class="relative flex-1 min-h-0">
                             <canvas id="gameCanvas" width="310" height="180" class="w-full h-full block image-pixelated touch-none"></canvas>
 
+                            <!-- HUD: download modello in background -->
+                            <div id="modelDownloadHud" class="hidden absolute top-1 right-1 z-10 text-[10px] font-mono font-bold text-[#1f2a08] bg-[#a8c04a]/90 px-1.5 py-0.5 rounded">Modello in download…</div>
+
                             <!-- Pet Navigation: freccia sinistra a sinistra -->
                             <div class="pet-nav-wrap-left" id="petNavWrapLeft">
                                 <button id="petNavPrev" class="pet-nav hidden" title="Pet precedente" aria-label="Pet precedente">◀</button>
@@ -774,6 +777,7 @@
 
                         <!-- Settings Modal: AI model picker + suoni + lingua voce -->
                         <div id="settingsModal" class="hidden absolute inset-0 bg-[#879864]/95 flex flex-col items-center justify-center p-3 text-center z-30 overflow-y-auto custom-scrollbar">
+                            <button id="settingsCloseBtn" class="absolute top-2 right-2 w-6 h-6 bg-[#1f2a08] text-[#879864] rounded text-sm font-bold leading-none" title="Chiudi" aria-label="Chiudi impostazioni">✕</button>
                             <h3 id="settingsTitle" class="text-xs font-bold uppercase mb-2">Impostazioni</h3>
 
                             <label class="settings-label flex items-center gap-2 text-[10px] font-bold self-start ml-1 uppercase mb-2 cursor-pointer">
@@ -3570,7 +3574,10 @@ function getUniquePetName() {
                 syncHint();
             }
 
-            function closeSettings() { if (settingsModal) settingsModal.classList.add('hidden'); }
+            function closeSettings() {
+                if (settingsModal) settingsModal.classList.add('hidden');
+                syncDownloadHud();
+            }
             function restoreSettings() {
                 const restoreId = savedAiState.modelId || petAI.modelId;
                 if (modelSelect) {
@@ -3588,30 +3595,65 @@ function getUniquePetName() {
                 syncSettingsControls();
                 settingsModal.classList.remove('hidden');
                 updateModelStatus(
-                    !petAI.enabled ? 'disabled'
+                    isReloading() ? 'loading'
+                    : !petAI.enabled ? 'disabled'
                     : !petAI.ready && petAI.engine ? 'loading'
                     : petAI.ready ? 'ready'
                     : 'idle'
                 );
+                syncDownloadHud();
             }
 
+            let reloadCount = 0;
             let aiReloading = false;
+            const isReloading = () => reloadCount > 0;
+            // Stato attivo prima dell'ultimo reload: Annulla lo usa per ripristinare
+            // le vecchie impostazioni mentre un download è in corso.
+            let pendingRevert = null;
+
             async function reloadPetAI({ modelId = null, enabled = petAI.enabled } = {}) {
-                if (aiReloading) return;
+                const targetId = modelId || petAI.modelId;
+                // Snapshot dello stato attivo prima del download (lazy swap: il
+                // vecchio modello resta in esecuzione finché il nuovo non è pronto).
+                if (!pendingRevert) {
+                    pendingRevert = { modelId: petAI.modelId, enabled: petAI.enabled };
+                }
+                reloadCount++;
                 aiReloading = true;
-                if (modelSelect) modelSelect.disabled = true;
-                if (aiToggle) aiToggle.disabled = true;
-                if (settingsSaveBtn) settingsSaveBtn.disabled = true;
-                if (settingsCancelBtn) settingsCancelBtn.disabled = true;
+                syncDownloadHud();
+                updateModelStatus('idle');
                 try {
-                    updateModelStatus('idle');
-                    await petAI.unload();
-                    petAI.enabled = enabled;
-                    if (modelId) petAI.modelId = modelId;
-                    if (enabled) {
-                        await petAI.init();
-                    } else {
-                        updateModelStatus('disabled');
+                    const res = await petAI.switchModel(targetId, enabled);
+                    if (!res || !res.ok) {
+                        if (res && res.cancelled) return; // superseded/aborted: niente da committare
+                        // Fallimento: il vecchio modello resta attivo, ripristina la preferenza salvata.
+                        saveModelId(pendingRevert.modelId);
+                        setSetting(SET_AI_KEY, pendingRevert.enabled ? '1' : '0');
+                        pendingRevert = null;
+                        updateModelStatus('error');
+                        const statusHint = document.getElementById('modelStatusHint');
+                        if (statusHint) {
+                            statusHint.textContent = res && res.error
+                                ? `Errore caricamento modello: ${res.error.message}`
+                                : 'Errore caricamento modello';
+                        }
+                        return;
+                    }
+                    // Successo: il modello caricato (anche tier di auto-fallback) è ora attivo.
+                    saveModelId(res.modelId || targetId);
+                    pendingRevert = null;
+                    syncSettingsControls();
+                    updateModelStatus(
+                        !petAI.enabled ? 'disabled'
+                        : petAI.ready ? 'ready'
+                        : 'idle'
+                    );
+                    if (res.fallback) {
+                        const statusHint = document.getElementById('modelStatusHint');
+                        if (statusHint) {
+                            const sel = LLM_MODELS.find((m) => m.id === res.modelId);
+                            statusHint.textContent = `Auto-switched to ${sel ? sel.label : res.modelId} (model too heavy).`;
+                        }
                     }
                 } catch (err) {
                     console.warn('[Settings] Reload failed:', err.message);
@@ -3619,11 +3661,9 @@ function getUniquePetName() {
                     const statusHint = document.getElementById('modelStatusHint');
                     if (statusHint) statusHint.textContent = `Reload failed: ${err.message}`;
                 } finally {
-                    if (modelSelect) modelSelect.disabled = !(aiToggle && aiToggle.checked);
-                    if (aiToggle) aiToggle.disabled = false;
-                    if (settingsSaveBtn) settingsSaveBtn.disabled = false;
-                    if (settingsCancelBtn) settingsCancelBtn.disabled = false;
-                    aiReloading = false;
+                    reloadCount = Math.max(0, reloadCount - 1);
+                    aiReloading = reloadCount > 0;
+                    syncDownloadHud();
                 }
             }
 
@@ -3670,14 +3710,33 @@ function getUniquePetName() {
                 }
             }
 
+            // HUD compatto sulla schermata del pet: mostra il download in background
+            // quando la modale è chiusa (la modale ha la sua barra di progresso).
+            const modelDownloadHud = document.getElementById('modelDownloadHud');
+            function syncDownloadHud(progress = null) {
+                if (!modelDownloadHud) return;
+                const modalOpen = settingsModal && !settingsModal.classList.contains('hidden');
+                // Download attivo: un reload non ancora committato/cancellato, oppure
+                // il modello iniziale ancora in caricamento all'avvio.
+                const loading = (isReloading() && pendingRevert) || (petAI.engine && petAI.engine.status === 'loading');
+                const show = !!loading && petAI.enabled && !modalOpen;
+                modelDownloadHud.classList.toggle('hidden', !show);
+                if (show) {
+                    const pct = progress !== null ? Math.round(progress * 100) : null;
+                    modelDownloadHud.textContent = pct !== null ? `Modello in download… ${pct}%` : 'Modello in download…';
+                }
+            }
+
             petAI.addEventListener('statuschange', (e) => {
                 if (e.detail === 'loading' || e.detail === 'ready' || e.detail === 'generating' || e.detail === 'error') {
                     updateModelStatus(e.detail);
                 }
+                syncDownloadHud();
             });
 
             petAI.addEventListener('progress', (e) => {
                 updateModelStatus('loading', e.detail && e.detail.progress);
+                syncDownloadHud(e.detail && e.detail.progress);
             });
 
             if (settingsBtn) settingsBtn.addEventListener('click', openSettings);
@@ -3689,10 +3748,39 @@ function getUniquePetName() {
             if (startSettingsBtn) startSettingsBtn.addEventListener('click', openSettings);
             if (gameOverMenuBtn) gameOverMenuBtn.addEventListener('click', () => engine.showStartScreenModal());
             if (gameOverRestartBtn) gameOverRestartBtn.addEventListener('click', () => engine.startNewGame());
-            if (settingsCancelBtn) settingsCancelBtn.addEventListener('click', () => {
-                restoreSettings();
+            async function cancelSettings() {
+                if (isReloading() && pendingRevert) {
+                    // Annulla durante il download: scarta il nuovo modello in corso
+                    // e ripristina le vecchie impostazioni (memoria + localStorage).
+                    petAI.abortPending();
+                    petAI.modelId = pendingRevert.modelId;
+                    petAI.enabled = pendingRevert.enabled;
+                    saveModelId(pendingRevert.modelId);
+                    setSetting(SET_AI_KEY, pendingRevert.enabled ? '1' : '0');
+                    savedAiState.modelId = pendingRevert.modelId;
+                    savedAiState.enabled = pendingRevert.enabled;
+                    if (modelSelect) {
+                        modelSelect.value = petAI.modelId;
+                        const sel = LLM_MODELS.find((m) => m.id === petAI.modelId);
+                        if (modelVramHint) modelVramHint.textContent = sel ? `VRAM stimata: ${sel.vram}` : '';
+                    }
+                    syncSettingsControls();
+                    updateModelStatus(
+                        !petAI.enabled ? 'disabled'
+                        : petAI.ready ? 'ready'
+                        : 'idle'
+                    );
+                    pendingRevert = null;
+                } else {
+                    restoreSettings();
+                }
                 closeSettings();
-            });
+            }
+            if (settingsCancelBtn) settingsCancelBtn.addEventListener('click', cancelSettings);
+            const settingsCloseBtn = document.getElementById('settingsCloseBtn');
+            // ✕: uscita neutra — chiude la modale e torna al pet senza applicare
+            // né annullare nulla (un download in corso prosegue in background).
+            if (settingsCloseBtn) settingsCloseBtn.addEventListener('click', closeSettings);
             if (settingsSaveBtn) {
                 settingsSaveBtn.addEventListener('click', async () => {
                     const newId = modelSelect.value;
