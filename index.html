@@ -3110,6 +3110,9 @@ function getUniquePetName() {
             const langSelect = document.getElementById('langSelect');
             const aiToggle = document.getElementById('aiToggle');
 
+            // Snapshot dell'ultima configurazione AI applicata/salvata, per il ripristino su Annulla.
+            const savedAiState = { modelId: petAI.modelId, enabled: petAI.enabled };
+
             // Applica il mute suoni salvato all'avvio.
             if (window.audio) window.audio.setEnabled(getSetting(SET_SOUND_KEY, '1') !== '0');
 
@@ -3161,14 +3164,17 @@ function getUniquePetName() {
                     const sel = LLM_MODELS.find((m) => m.id === modelSelect.value);
                     if (modelVramHint) modelVramHint.textContent = sel ? `VRAM stimata: ${sel.vram}` : '';
                 };
-                modelSelect.addEventListener('change', syncHint);
+                modelSelect.addEventListener('change', () => {
+                    syncHint();
+                });
                 syncHint();
             }
 
             function closeSettings() { if (settingsModal) settingsModal.classList.add('hidden'); }
             function restoreSettings() {
+                const restoreId = savedAiState.modelId || petAI.modelId;
                 if (modelSelect) {
-                    modelSelect.value = petAI.modelId;
+                    modelSelect.value = restoreId;
                     const sel = LLM_MODELS.find((m) => m.id === modelSelect.value);
                     if (modelVramHint) modelVramHint.textContent = sel ? `VRAM stimata: ${sel.vram}` : '';
                 }
@@ -3176,6 +3182,8 @@ function getUniquePetName() {
             }
             function openSettings() {
                 if (!settingsModal || !modelSelect) return;
+                savedAiState.modelId = petAI.modelId;
+                savedAiState.enabled = petAI.enabled;
                 modelSelect.value = petAI.modelId;
                 syncSettingsControls();
                 settingsModal.classList.remove('hidden');
@@ -3187,7 +3195,14 @@ function getUniquePetName() {
                 );
             }
 
+            let aiReloading = false;
             async function reloadPetAI({ modelId = null, enabled = petAI.enabled } = {}) {
+                if (aiReloading) return;
+                aiReloading = true;
+                if (modelSelect) modelSelect.disabled = true;
+                if (aiToggle) aiToggle.disabled = true;
+                if (settingsSaveBtn) settingsSaveBtn.disabled = true;
+                if (settingsCancelBtn) settingsCancelBtn.disabled = true;
                 try {
                     updateModelStatus('idle');
                     await petAI.unload();
@@ -3204,7 +3219,11 @@ function getUniquePetName() {
                     const statusHint = document.getElementById('modelStatusHint');
                     if (statusHint) statusHint.textContent = `Reload failed: ${err.message}`;
                 } finally {
+                    if (modelSelect) modelSelect.disabled = !(aiToggle && aiToggle.checked);
+                    if (aiToggle) aiToggle.disabled = false;
                     if (settingsSaveBtn) settingsSaveBtn.disabled = false;
+                    if (settingsCancelBtn) settingsCancelBtn.disabled = false;
+                    aiReloading = false;
                 }
             }
 
@@ -3290,6 +3309,8 @@ function getUniquePetName() {
                         if (synth._loadVoices) synth._loadVoices();
                     }
                     setSetting(SET_AI_KEY, newEnabled ? '1' : '0');
+                    savedAiState.modelId = newId;
+                    savedAiState.enabled = newEnabled;
                     closeSettings();
                     if (aiChanged || modelChanged) {
                         await reloadPetAI({ modelId: newId, enabled: newEnabled });
