@@ -60,7 +60,7 @@
             display: block;
             position: absolute;
             top: 0; left: 0; bottom: 0; right: 0;
-            background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0) 58%, rgba(31, 42, 8, 0.16) 100%);
+            background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0) 58%, rgba(0, 0, 0, 0.16) 100%);
             pointer-events: none;
             z-index: 9;
         }
@@ -101,9 +101,9 @@
             width: 30px;
             height: 30px;
             border-radius: 9999px;
-            background: rgba(31, 42, 8, 0.55);
-            border: 2px solid #526333;
-            color: #879864;
+            background: rgba(0, 0, 0, 0.55);
+            border: 2px solid #a9a9a9;
+            color: #ffffff;
             font-size: 13px;
             font-weight: 900;
             line-height: 1;
@@ -119,15 +119,15 @@
         }
 
         .pet-nav:hover {
-            background: rgba(31, 42, 8, 0.8);
-            color: #e6eece;
+            background: rgba(0, 0, 0, 0.8);
+            color: #f0f0f0;
             transform: scale(1.08);
         }
 
         .pet-nav:active {
             transform: scale(0.92);
-            background: rgba(31, 42, 8, 0.9);
-            color: #e6eece;
+            background: rgba(0, 0, 0, 0.9);
+            color: #f0f0f0;
         }
 
         .pet-nav.hidden {
@@ -149,9 +149,9 @@
             width: 26px;
             height: 26px;
             font-size: 14px;
-            background: rgba(31, 42, 8, 0.55);
-            border: 2px solid #526333;
-            color: #879864;
+            background: rgba(0, 0, 0, 0.55);
+            border: 2px solid #a9a9a9;
+            color: #ffffff;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -162,14 +162,14 @@
             touch-action: manipulation;
         }
         .settings-gear:hover {
-            background: rgba(31, 42, 8, 0.8);
-            color: #e6eece;
+            background: rgba(0, 0, 0, 0.8);
+            color: #f0f0f0;
             transform: scale(1.08);
         }
         .settings-gear:active {
             transform: scale(0.92);
-            background: rgba(31, 42, 8, 0.9);
-            color: #e6eece;
+            background: rgba(0, 0, 0, 0.9);
+            color: #f0f0f0;
         }
 
         /* Angoli "tagliati" a scala pixel */
@@ -184,7 +184,7 @@
 
         /* Canvas: riempie l'area disponibile, buffer adattivo (niente distorsione/letterbox) */
         #gameCanvas {
-            background: #879864;
+            background: #ffffff;
             image-rendering: pixelated;
         }
 
@@ -267,8 +267,8 @@
             position: relative;
             min-width: 0;
             height: 12px;
-            background: rgba(31, 42, 8, 0.12);
-            border: 1px solid #1f2a08;
+            background: rgba(0, 0, 0, 0.12);
+            border: 1px solid #000000;
             border-radius: 2px;
             box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
             overflow: hidden;
@@ -279,7 +279,7 @@
             content: "";
             position: absolute;
             top: 0; left: 0; bottom: 0; right: 0;
-            background-image: linear-gradient(90deg, rgba(31, 42, 8, 0.16) 0 74%, transparent 74% 100%);
+            background-image: linear-gradient(90deg, rgba(0, 0, 0, 0.16) 0 74%, transparent 74% 100%);
             background-size: 10% 100%;
             background-repeat: repeat-x;
             pointer-events: none;
@@ -290,7 +290,7 @@
             content: "";
             position: absolute;
             top: 0; left: 0; bottom: 0; right: 0;
-            background-image: linear-gradient(90deg, rgba(0, 0, 0, 0) 0 76%, #879864 76% 100%);
+            background-image: linear-gradient(90deg, rgba(0, 0, 0, 0) 0 76%, #ffffff 76% 100%);
             background-size: 10% 100%;
             background-repeat: repeat-x;
             pointer-events: none;
@@ -298,7 +298,7 @@
 
         .lcd-meter-fill {
             height: 100%;
-            background: linear-gradient(180deg, #2c3d10, #1f2a08);
+            background: linear-gradient(180deg, #3a3a3a, #000000);
             transition: width 0.3s steps(10, end);
         }
 
@@ -389,7 +389,7 @@
             background: rgba(0,0,0,0.1);
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #1f2a08;
+            background: #000000;
             border-radius: 2px;
         }
 
@@ -561,23 +561,23 @@
             align-items: center;
             gap: 10px;
             padding: 14px 16px 16px;
-            background: rgba(31, 42, 8, 0.14);
-            border: 2px solid #526333;
+            background: rgba(0, 0, 0, 0.14);
+            border: 2px solid #a9a9a9;
             border-radius: 4px;
-            box-shadow: inset 0 0 0 3px rgba(31, 42, 8, 0.25), 0 8px 24px rgba(0, 0, 0, 0.45);
+            box-shadow: inset 0 0 0 3px rgba(0, 0, 0, 0.25), 0 8px 24px rgba(0, 0, 0, 0.45);
         }
 
         .go-banner {
             font: 900 clamp(20px, 5vw, 40px)/1 'Courier New', Courier, monospace;
             letter-spacing: 0.12em;
-            color: #1f2a08;
-            text-shadow: 0 2px 0 rgba(31, 42, 8, 0.35);
+            color: #000000;
+            text-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
             white-space: nowrap;
         }
 
         .go-subtitle {
             font: 700 clamp(10px, 1.6vw, 13px)/1.4 'Courier New', Courier, monospace;
-            color: #1f2a08;
+            color: #000000;
             opacity: 0.85;
             letter-spacing: 0.08em;
             text-align: center;
@@ -588,8 +588,8 @@
             width: 48px;
             height: 48px;
             image-rendering: pixelated;
-            background: rgba(31, 42, 8, 0.1);
-            border: 2px solid #526333;
+            background: rgba(0, 0, 0, 0.1);
+            border: 2px solid #a9a9a9;
             border-radius: 4px;
         }
 
@@ -597,11 +597,11 @@
             width: 100%;
             font: 900 clamp(11px, 1.8vw, 14px)/1 'Courier New', Courier, monospace;
             letter-spacing: 0.2em;
-            color: #1f2a08;
+            color: #000000;
             text-align: center;
             padding: 6px 0;
-            border-top: 2px solid #526333;
-            border-bottom: 2px solid #526333;
+            border-top: 2px solid #a9a9a9;
+            border-bottom: 2px solid #a9a9a9;
         }
 
         .go-stats {
@@ -610,7 +610,7 @@
             grid-template-columns: 1fr 1fr;
             gap: 4px 14px;
             font: 700 clamp(11px, 1.7vw, 14px)/1 'Courier New', Courier, monospace;
-            color: #1f2a08;
+            color: #000000;
         }
 
         .go-stat {
@@ -619,8 +619,8 @@
             justify-content: space-between;
             gap: 6px;
             padding: 4px 6px;
-            background: rgba(31, 42, 8, 0.08);
-            border-left: 3px solid #526333;
+            background: rgba(0, 0, 0, 0.08);
+            border-left: 3px solid #a9a9a9;
         }
         .go-stat .label { opacity: 0.78; text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.82em; }
         .go-stat .value { font-weight: 900; }
@@ -637,22 +637,22 @@
         .go-btn {
             font: 900 clamp(11px, 1.8vw, 13px)/1 'Courier New', Courier, monospace;
             letter-spacing: 0.04em;
-            color: #879864;
-            background: #1f2a08;
-            border: 2px solid #1f2a08;
+            color: #ffffff;
+            background: #000000;
+            border: 2px solid #000000;
             border-radius: 3px;
             padding: 10px 16px;
             cursor: pointer;
-            box-shadow: 0 3px 0 #0d1304, 0 5px 8px rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.12);
+            box-shadow: 0 3px 0 #000000, 0 5px 8px rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.12);
             transition: transform 0.06s ease, box-shadow 0.06s ease, filter 0.06s ease;
         }
         .go-btn:active {
             transform: translateY(2px);
-            box-shadow: 0 1px 0 #0d1304, 0 2px 3px rgba(0, 0, 0, 0.4), inset 0 1px 3px rgba(0, 0, 0, 0.35);
+            box-shadow: 0 1px 0 #000000, 0 2px 3px rgba(0, 0, 0, 0.4), inset 0 1px 3px rgba(0, 0, 0, 0.35);
             filter: brightness(0.95);
         }
         .go-btn--primary {
-            color: #1f2a08;
+            color: #000000;
             background: linear-gradient(#ffe9a8, #f2c94c 55%, #e0b53c);
             border-color: #a8862a;
             box-shadow: 0 3px 0 #a8862a, 0 5px 8px rgba(0, 0, 0, 0.45), inset 0 2px 3px rgba(255, 255, 255, 0.7);
@@ -669,7 +669,7 @@
     <div id="tamagotchiWidgetRoot" class="fixed bottom-6 right-6 z-[99999] flex flex-col items-end">
 
         <!-- Achievement Unlock Toast (fisso sullo schermo, visibile sempre) -->
-        <div id="achievementToast" class="hidden fixed top-4 left-1/2 z-[200001] bg-[#1f2a08] text-amber-300 text-xs font-bold py-2 px-4 rounded-xl shadow-2xl border-2 border-amber-400 whitespace-nowrap font-mono flex items-center gap-2">
+        <div id="achievementToast" class="hidden fixed top-4 left-1/2 z-[200001] bg-[#000000] text-amber-300 text-xs font-bold py-2 px-4 rounded-xl shadow-2xl border-2 border-amber-400 whitespace-nowrap font-mono flex items-center gap-2">
             <span class="text-base" id="achToastIcon">🏆</span>
             <span id="achToastText" data-i18n="ach.unlocked">SBLOCCATO!</span>
         </div>
@@ -681,10 +681,10 @@
                 <!-- Display area: LCD Screen Box (fullscreen, senza cornice) -->
                 <main class="md-display-area">
                 <div class="flex flex-col flex-1 min-h-0">
-                    <div class="bg-[#879864] text-[#1f2a08] relative overflow-hidden flex flex-col lcd-screen-lines flex-1 min-h-0">
+                    <div class="bg-[#ffffff] text-[#000000] relative overflow-hidden flex flex-col lcd-screen-lines flex-1 min-h-0">
 
                         <!-- Unified Header: Gen/Info (no tabs, switching via edge arrows) -->
-                        <div class="flex items-center justify-between gap-2 p-1 pl-1.5 pr-2 bg-black/10 border-b border-[#71824f] min-w-0">
+                        <div class="flex items-center justify-between gap-2 p-1 pl-1.5 pr-2 bg-black/10 border-b border-[#9a9a9a] min-w-0">
                             <div class="flex items-center gap-1.5 font-mono text-[12px] font-bold whitespace-nowrap" title="Generazione · Pet attivo/totale · Trofei · Monete" data-i18n-title="header.title">
                                 <span id="genTracker">GEN 1</span>
                                 <span class="opacity-40">·</span>
@@ -698,7 +698,7 @@
                         </div>
 
                         <!-- Pet Name Label -->
-                        <div class="px-2 py-0.5 bg-black/5 border-b border-dashed border-[#71824f] text-center font-mono text-[12px] font-bold tracking-[0.2em] truncate">
+                        <div class="px-2 py-0.5 bg-black/5 border-b border-dashed border-[#9a9a9a] text-center font-mono text-[12px] font-bold tracking-[0.2em] truncate">
                             <span id="petNameStage" data-i18n="stage.EGG">UOVO</span>
                         </div>
 
@@ -707,7 +707,7 @@
                             <canvas id="gameCanvas" width="310" height="180" class="w-full h-full block image-pixelated touch-none"></canvas>
 
                             <!-- HUD: download modello in background -->
-                            <div id="modelDownloadHud" class="hidden absolute top-1 right-1 z-10 text-[10px] font-mono font-bold text-[#1f2a08] bg-[#a8c04a]/90 px-1.5 py-0.5 rounded" data-i18n="hud.downloading">Modello in download…</div>
+                            <div id="modelDownloadHud" class="hidden absolute top-1 right-1 z-10 text-[10px] font-mono font-bold text-[#000000] bg-[#c8c8c8]/90 px-1.5 py-0.5 rounded" data-i18n="hud.downloading">Modello in download…</div>
 
                             <!-- Pet Navigation: freccia sinistra a sinistra -->
                             <div class="pet-nav-wrap-left" id="petNavWrapLeft">
@@ -720,7 +720,7 @@
                         </div>
 
                         <!-- Stats Meter Dashboard (blocchi pixel) -->
-                        <div class="px-2 py-1.5 bg-black/5 border-t border-dashed border-[#71824f] grid grid-cols-2 gap-x-3 gap-y-1.5 font-mono text-[11px] font-bold overflow-hidden">
+                        <div class="px-2 py-1.5 bg-black/5 border-t border-dashed border-[#9a9a9a] grid grid-cols-2 gap-x-3 gap-y-1.5 font-mono text-[11px] font-bold overflow-hidden">
                             <div class="stat-item" title="Fame" data-i18n-title="stat.food">
                                 <canvas id="iconHunger" width="22" height="22" class="stat-sprite-icon"></canvas>
                                 <div class="lcd-meter"><div class="lcd-meter-fill" id="barHunger" style="width: 50%;"></div></div>
@@ -744,14 +744,14 @@
                         </div>
 
                         <!-- Modal Overlay for Notifications/Alerts -->
-                        <div id="overlayModal" class="hidden absolute inset-0 bg-[#879864]/95 flex flex-col items-center justify-center p-3 text-center z-20">
+                        <div id="overlayModal" class="hidden absolute inset-0 bg-[#ffffff]/95 flex flex-col items-center justify-center p-3 text-center z-20">
                             <h3 id="modalTitle" class="text-xs font-bold uppercase mb-1" data-i18n="modal.title">AVVISO</h3>
                             <p id="modalBody" class="text-[11px] leading-tight mb-3" data-i18n="modal.body">Messaggio avviso</p>
-                            <button id="modalBtn" class="bg-[#1f2a08] text-[#879864] px-3 py-1 text-xs font-bold rounded" data-i18n="modal.ok">OK</button>
+                            <button id="modalBtn" class="bg-[#000000] text-[#ffffff] px-3 py-1 text-xs font-bold rounded" data-i18n="modal.ok">OK</button>
                         </div>
 
                         <!-- Game Over Screen: statistiche finale partita -->
-                        <div id="gameOverModal" class="hidden absolute inset-0 bg-[#879864]/95 flex items-center justify-center p-3 text-center z-20">
+                        <div id="gameOverModal" class="hidden absolute inset-0 bg-[#ffffff]/95 flex items-center justify-center p-3 text-center z-20">
                             <div class="go-panel custom-scrollbar">
                                 <canvas id="gameOverSprite" width="48" height="48" class="go-sprite"></canvas>
                                 <div class="go-banner go-blink">GAME OVER</div>
@@ -766,51 +766,51 @@
                         </div>
 
                         <!-- Pre-Game Screen: menu principale -->
-                        <div id="startScreen" class="hidden absolute inset-0 bg-[#879864]/95 flex flex-col items-center justify-center p-3 text-center z-20">
-                            <pre id="menuTitleArt" class="text-[10px] leading-[1.2] font-mono whitespace-pre text-[#1f2a08] mb-2"></pre>
+                        <div id="startScreen" class="hidden absolute inset-0 bg-[#ffffff]/95 flex flex-col items-center justify-center p-3 text-center z-20">
+                            <pre id="menuTitleArt" class="text-[10px] leading-[1.2] font-mono whitespace-pre text-[#000000] mb-2"></pre>
                             <p class="text-[11px] leading-tight mb-3" data-i18n="startScreen.subtitle">Pronto per una nuova partita?</p>
                             <div class="flex flex-col gap-2 w-full max-w-[220px]">
-                                <button id="startNewGameBtn" class="bg-[#1f2a08] text-[#879864] px-3 py-2 text-xs font-bold rounded" data-i18n="startScreen.newGame">▶ Nuova partita</button>
-                                <button id="startSettingsBtn" class="bg-[#1f2a08] text-[#879864] px-3 py-2 text-xs font-bold rounded" data-i18n="startScreen.settings">⚙ Impostazioni</button>
+                                <button id="startNewGameBtn" class="bg-[#000000] text-[#ffffff] px-3 py-2 text-xs font-bold rounded" data-i18n="startScreen.newGame">▶ Nuova partita</button>
+                                <button id="startSettingsBtn" class="bg-[#000000] text-[#ffffff] px-3 py-2 text-xs font-bold rounded" data-i18n="startScreen.settings">⚙ Impostazioni</button>
                             </div>
                         </div>
 
                         <!-- Settings Modal: AI model picker + suoni + lingua voce -->
-                        <div id="settingsModal" class="hidden absolute inset-0 bg-[#879864]/95 flex flex-col items-center justify-center p-3 text-center z-30 overflow-y-auto custom-scrollbar">
-                            <button id="settingsCloseBtn" class="absolute top-2 right-2 w-6 h-6 bg-[#1f2a08] text-[#879864] rounded text-sm font-bold leading-none" title="Chiudi" aria-label="Chiudi impostazioni" data-i18n-title="settings.close" data-i18n-aria="settings.closeAria">✕</button>
+                        <div id="settingsModal" class="hidden absolute inset-0 bg-[#ffffff]/95 flex flex-col items-center justify-center p-3 text-center z-30 overflow-y-auto custom-scrollbar">
+                            <button id="settingsCloseBtn" class="absolute top-2 right-2 w-6 h-6 bg-[#000000] text-[#ffffff] rounded text-sm font-bold leading-none" title="Chiudi" aria-label="Chiudi impostazioni" data-i18n-title="settings.close" data-i18n-aria="settings.closeAria">✕</button>
                             <h3 id="settingsTitle" class="text-xs font-bold uppercase mb-2" data-i18n="settings.title">Impostazioni</h3>
 
                             <label class="settings-label flex items-center gap-2 text-[10px] font-bold self-start ml-1 uppercase mb-2 cursor-pointer">
-                                <input type="checkbox" id="aiToggle" class="accent-[#1f2a08] w-4 h-4"> <span data-i18n="settings.ai">AI (modello LLM)</span>
+                                <input type="checkbox" id="aiToggle" class="accent-[#000000] w-4 h-4"> <span data-i18n="settings.ai">AI (modello LLM)</span>
                             </label>
 
                             <label for="modelSelect" class="settings-label text-[10px] font-bold mb-1 self-start ml-1 uppercase" data-i18n="settings.model">Modello LLM</label>
-                            <select id="modelSelect" class="w-full text-[11px] p-1 rounded bg-[#1f2a08] text-[#879864] mb-1 font-mono"></select>
+                            <select id="modelSelect" class="w-full text-[11px] p-1 rounded bg-[#000000] text-[#ffffff] mb-1 font-mono"></select>
                             <p id="modelVramHint" class="settings-hint text-[10px] font-bold mb-1 italic">~0.5 GB</p>
                             <p id="modelStatusHint" class="settings-hint text-[10px] mb-3 opacity-80"></p>
                             <div id="modelProgressWrap" class="hidden w-full mb-3">
-                                <div class="w-full h-2 rounded bg-[#1f2a08] overflow-hidden">
-                                    <div id="modelProgressBar" class="h-full bg-[#a8c04a] transition-all duration-300" style="width:0%"></div>
+                                <div class="w-full h-2 rounded bg-[#000000] overflow-hidden">
+                                    <div id="modelProgressBar" class="h-full bg-[#c8c8c8] transition-all duration-300" style="width:0%"></div>
                                 </div>
                             </div>
 
                             <label for="langSelect" class="settings-label text-[10px] font-bold mb-1 self-start ml-1 uppercase" data-i18n="settings.lang">Lingua</label>
-                            <select id="langSelect" class="w-full text-[11px] p-1 rounded bg-[#1f2a08] text-[#879864] mb-2 font-mono">
+                            <select id="langSelect" class="w-full text-[11px] p-1 rounded bg-[#000000] text-[#ffffff] mb-2 font-mono">
                                 <option value="it-IT">Italiano</option>
                                 <option value="en-US">English</option>
                             </select>
 
                             <label class="settings-label flex items-center gap-2 text-[10px] font-bold self-start ml-1 uppercase mb-3 cursor-pointer">
-                                <input type="checkbox" id="soundToggle" class="accent-[#1f2a08] w-4 h-4"> <span data-i18n="settings.sound">Suoni</span>
+                                <input type="checkbox" id="soundToggle" class="accent-[#000000] w-4 h-4"> <span data-i18n="settings.sound">Suoni</span>
                             </label>
 
                             <label class="settings-label flex items-center gap-2 text-[10px] font-bold self-start ml-1 uppercase mb-3 cursor-pointer">
-                                <input type="checkbox" id="voiceToggle" class="accent-[#1f2a08] w-4 h-4"> <span data-i18n="settings.voice">Voce</span>
+                                <input type="checkbox" id="voiceToggle" class="accent-[#000000] w-4 h-4"> <span data-i18n="settings.voice">Voce</span>
                             </label>
 
                             <div class="flex gap-2 flex-wrap justify-center">
-                                <button id="settingsSaveBtn" class="bg-[#1f2a08] text-[#879864] px-3 py-1 text-xs font-bold rounded" data-i18n="settings.save">Salva</button>
-                                <button id="settingsCancelBtn" class="bg-[#1f2a08] text-[#879864] px-3 py-1 text-xs font-bold rounded" data-i18n="settings.cancel">Annulla</button>
+                                <button id="settingsSaveBtn" class="bg-[#000000] text-[#ffffff] px-3 py-1 text-xs font-bold rounded" data-i18n="settings.save">Salva</button>
+                                <button id="settingsCancelBtn" class="bg-[#000000] text-[#ffffff] px-3 py-1 text-xs font-bold rounded" data-i18n="settings.cancel">Annulla</button>
                             </div>
                         </div>
                     </div>
@@ -1917,7 +1917,7 @@ function getUniquePetName() {
                     fragments: []
                 };
                 // Frammenti di guscio che volano via
-                const colors = ['#1f2a08', '#526333', '#879864'];
+                const colors = ['#000000', '#545454', '#a9a9a9'];
                 for (let i = 0; i < 7; i++) {
                     this.hatchFx.fragments.push({
                         x: 0, y: 0,
@@ -2110,7 +2110,7 @@ function getUniquePetName() {
             }
 
             render() {
-                this.ctx.fillStyle = '#879864';
+                this.ctx.fillStyle = '#ffffff';
                 this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
                 const pet = this.getActivePet();
@@ -2150,7 +2150,7 @@ function getUniquePetName() {
                     this.ctx.fillStyle = 'rgba(0,0,0,0.2)';
                     this.ctx.fillRect(0, 0, W, H);
 
-                    this.ctx.fillStyle = '#1f2a08';
+                    this.ctx.fillStyle = '#000000';
                     this.ctx.font = 'bold ' + Math.round(18 * vs * 0.56) + 'px monospace';
                     const zOffset = Math.sin(this.animFrame * 0.1) * 5;
                     this.ctx.fillText('Z z z . .', 200 * hs, 55 * vs + zOffset);
@@ -2221,7 +2221,7 @@ function getUniquePetName() {
 
             drawPetFace(pet, ox, oy, s) {
                 const c = this.ctx;
-                c.fillStyle = '#1f2a08';
+                c.fillStyle = '#000000';
                 const u = (ux, uy, uw, uh) => c.fillRect(ox + ux * s, oy + uy * s, uw * s, uh * s);
 
                 if (pet.isSleeping) {
@@ -2248,7 +2248,7 @@ function getUniquePetName() {
                 }
 
                 if (pet.stage === 'SENIOR') {
-                    c.strokeStyle = '#1f2a08';
+                    c.strokeStyle = '#000000';
                     c.lineWidth = Math.max(1, Math.floor(s / 3));
                     c.strokeRect(ox + 4 * s + 0.5, oy + 5 * s + 0.5, 3 * s, 3 * s);
                     c.strokeRect(ox + 9 * s + 0.5, oy + 5 * s + 0.5, 3 * s, 3 * s);
@@ -2310,21 +2310,21 @@ function getUniquePetName() {
 
                 // Sfondo bubble (stile LCD) - diverso se in ascolto
                 const isUserInput = this.isListening || (this.petSpeech && this.petSpeech.startsWith('🎤'));
-                c.fillStyle = isUserInput ? '#c4d4a8' : '#d4dca0';
+                c.fillStyle = isUserInput ? '#d6d6d6' : '#e6e6e6';
                 c.fillRect(bubbleX, bubbleY, bubbleW, bubbleH);
 
                 // Bordo pixel-art
-                c.strokeStyle = '#1f2a08';
+                c.strokeStyle = '#000000';
                 c.lineWidth = 2;
                 c.strokeRect(bubbleX + 1, bubbleY + 1, bubbleW - 2, bubbleH - 2);
 
                 // Bordo interno più chiaro (effetto LCD)
-                c.strokeStyle = '#879864';
+                c.strokeStyle = '#ffffff';
                 c.lineWidth = 1;
                 c.strokeRect(bubbleX + 3, bubbleY + 3, bubbleW - 6, bubbleH - 6);
 
                 // Testo
-                c.fillStyle = '#1f2a08';
+                c.fillStyle = '#000000';
                 c.font = '10px monospace';
                 c.textAlign = 'left';
                 c.textBaseline = 'top';
@@ -2334,14 +2334,14 @@ function getUniquePetName() {
 
                 // Coda del bubble (triangolo verso il pet, sul lato sinistro)
                 const tailY = Math.max(bubbleY + 8, Math.min(bubbleY + bubbleH - 8, petY));
-                c.fillStyle = '#d4dca0';
+                c.fillStyle = '#e6e6e6';
                 c.beginPath();
                 c.moveTo(bubbleX, tailY - 5);
                 c.lineTo(bubbleX - 8, tailY);
                 c.lineTo(bubbleX, tailY + 5);
                 c.closePath();
                 c.fill();
-                c.strokeStyle = '#1f2a08';
+                c.strokeStyle = '#000000';
                 c.lineWidth = 2;
                 c.beginPath();
                 c.moveTo(bubbleX, tailY - 5);
@@ -2351,7 +2351,7 @@ function getUniquePetName() {
 
                 // Icona AI / Mic nell'angolo
                 c.font = '8px monospace';
-                c.fillStyle = '#526333';
+                c.fillStyle = '#a9a9a9';
                 c.textAlign = 'right';
                 c.textBaseline = 'bottom';
                 const indicator = this.isListening ? 'MIC' : (this.petAI && this.petAI.ready ? 'AI' : '');
@@ -2386,7 +2386,7 @@ function getUniquePetName() {
                 // HUD: invito a tappare sopra l'uovo (nessuna barra di progresso)
                 this.ctx.font = 'bold ' + Math.round(11 * vs) + 'px monospace';
                 this.ctx.textAlign = 'center';
-                this.ctx.fillStyle = '#1f2a08';
+                this.ctx.fillStyle = '#000000';
                 if (pct <= 0 && Math.floor(this.animFrame * 0.1) % 2 === 0) {
                     this.ctx.fillText('TAP!', x + wobble, y - 12 * vs);
                 }
@@ -2461,7 +2461,7 @@ function getUniquePetName() {
                         if (!isLeft && col < 8) continue;
                         const ch = row[col];
                         if (ch === '.') continue;
-                        c.fillStyle = ch === '#' ? '#1f2a08' : (ch === '-' ? '#879864' : '#526333');
+                        c.fillStyle = ch === '#' ? '#000000' : (ch === '-' ? '#ffffff' : '#a9a9a9');
                         c.fillRect(drawX + col * s, drawY + r * s, s, s);
                     }
                 }
@@ -2471,7 +2471,7 @@ function getUniquePetName() {
                 const s = Math.max(2, Math.round(2 * (this.canvas.height / 180)));
                 this.drawPixelSprite(this.SPRITES.TOMB, x - 9 * s, y - 14 * s, s);
 
-                this.ctx.fillStyle = '#879864';
+                this.ctx.fillStyle = '#ffffff';
                 this.ctx.font = 'bold ' + Math.round(10 * (this.canvas.height / 180)) + 'px monospace';
                 this.ctx.textAlign = 'center';
                 this.ctx.fillText('R.I.P', x, y - 2 * s);
@@ -2494,7 +2494,7 @@ function getUniquePetName() {
                 this.drawPixelSprite(this.SPRITES.SKULL, x, y, 1);
             }
 
-            drawPixelSprite(map, x, y, scale = 2, dark = '#1f2a08', mid = '#526333', light = '#879864') {
+            drawPixelSprite(map, x, y, scale = 2, dark = '#000000', mid = '#a9a9a9', light = '#ffffff') {
                 const c = this.ctx;
                 for (let r = 0; r < map.length; r++) {
                     const row = map[r];
@@ -2515,9 +2515,9 @@ function getUniquePetName() {
                     iconHygiene: this.SPRITES.CLEAN
                 };
                 const size = 22;
-                const dark = '#1f2a08';
-                const mid = '#526333';
-                const light = '#879864';
+                const dark = '#000000';
+                const mid = '#a9a9a9';
+                const light = '#ffffff';
                 Object.entries(map).forEach(([id, sprite]) => {
                     const cvs = document.getElementById(id);
                     if (!cvs || !sprite) return;
@@ -2605,7 +2605,7 @@ function getUniquePetName() {
                     const micActive = item === 'MIC' && this.isListening;
 
                     if (selected || micActive) {
-                        this.ctx.fillStyle = micActive ? '#dc2626' : '#1f2a08';
+                        this.ctx.fillStyle = micActive ? '#dc2626' : '#000000';
                         this.ctx.fillRect(x - 4, y - 5, cell - 1, Math.round(icon * 42 / 32));
                     }
 
@@ -2613,16 +2613,16 @@ function getUniquePetName() {
                     if (!available) this.ctx.globalAlpha = 0.3;
 
                     this.drawPixelSprite(this.SPRITES[item], x, y, spriteScale,
-                        selected ? '#879864' : '#1f2a08',
-                        '#526333',
-                        selected ? '#1f2a08' : '#879864');
+                        selected ? '#ffffff' : '#000000',
+                        '#a9a9a9',
+                        selected ? '#000000' : '#ffffff');
                     this.ctx.restore();
 
                     if (item === 'HEAL') {
                         const k = spriteScale / 2;
-                        this.ctx.fillStyle = '#526333';
+                        this.ctx.fillStyle = '#a9a9a9';
                         this.ctx.fillRect(x + 22 * k, y + 26 * k, 24 * k, 11 * k);
-                        this.ctx.fillStyle = '#879864';
+                        this.ctx.fillStyle = '#ffffff';
                         this.ctx.font = 'bold ' + Math.round(8 * k) + 'px monospace';
                         this.ctx.fillText('$80', x + 24 * k, y + 35 * k);
                     }
@@ -2763,7 +2763,7 @@ function getUniquePetName() {
             renderMiniGame() {
                 const hs = this.canvas.width / 310;
                 const vs = this.canvas.height / 180;
-                this.ctx.fillStyle = '#1f2a08';
+                this.ctx.fillStyle = '#000000';
                 this.ctx.font = 'bold ' + Math.round(15 * hs) + 'px monospace';
                 this.ctx.fillText(TAMA_I18N.t('minigame.stars', { score: this.miniGameScore }), 10 * hs, 20 * vs);
 
@@ -2779,7 +2779,7 @@ function getUniquePetName() {
             drawOverlayNav(hs, vs, showScroll) {
                 const c = this.ctx;
                 c.font = 'bold ' + Math.round(13 * hs) + 'px monospace';
-                c.fillStyle = '#879864';
+                c.fillStyle = '#ffffff';
                 if (showScroll) {
                     c.fillText('▲', 250 * hs, 13 * vs);
                     c.fillText('▼', 268 * hs, 13 * vs);
@@ -2878,9 +2878,9 @@ function getUniquePetName() {
                 const hs = this.canvas.width / 310;
                 const vs = this.canvas.height / 180;
 
-                c.fillStyle = '#1f2a08';
+                c.fillStyle = '#000000';
                 c.fillRect(0, 0, this.canvas.width, 18 * vs);
-                c.fillStyle = '#879864';
+                c.fillStyle = '#ffffff';
                 c.font = 'bold ' + Math.round(13 * hs) + 'px monospace';
                 c.fillText(TAMA_I18N.t('shop.title', { coins: Math.floor(this.coins) }), 8 * hs, 13 * vs);
                 c.textAlign = 'right';
@@ -2899,24 +2899,24 @@ function getUniquePetName() {
                     const selected = idx === this.shopIndex;
 
                     if (selected) {
-                        c.fillStyle = 'rgba(31,42,8,0.85)';
+                        c.fillStyle = 'rgba(0,0,0,0.85)';
                         c.fillRect(0, y - 3 * vs, this.canvas.width, rowH - 2 * vs);
                     }
 
-                    c.fillStyle = selected ? '#879864' : 'rgba(31,42,8,0.18)';
+                    c.fillStyle = selected ? '#ffffff' : 'rgba(0,0,0,0.18)';
                     c.fillRect(6 * hs, y, 16 * hs, 16 * vs);
                     if (item.sprite) {
                         this.drawPixelSprite(item.sprite, 6 * hs, y, Math.max(1, Math.round(hs)),
-                            selected ? '#879864' : '#1f2a08',
-                            selected ? '#1f2a08' : '#526333',
-                            selected ? '#1f2a08' : '#879864');
+                            selected ? '#ffffff' : '#000000',
+                            selected ? '#000000' : '#a9a9a9',
+                            selected ? '#000000' : '#ffffff');
                     } else {
                         c.font = 'bold ' + Math.round(13 * hs) + 'px monospace';
-                        c.fillStyle = selected ? '#879864' : '#1f2a08';
+                        c.fillStyle = selected ? '#ffffff' : '#000000';
                         c.fillText('✕', 10 * hs, y + 12 * vs);
                     }
 
-                    c.fillStyle = selected ? '#879864' : '#1f2a08';
+                    c.fillStyle = selected ? '#ffffff' : '#000000';
                     c.font = 'bold ' + Math.round(13 * hs) + 'px monospace';
                     c.fillText(item.name, 28 * hs, y + 8 * vs);
 
@@ -2940,9 +2940,9 @@ function getUniquePetName() {
                 this.drawOverlayNav(hs, vs, false);
 
                 if (this.shopFlash) {
-                    c.fillStyle = '#1f2a08';
+                    c.fillStyle = '#000000';
                     c.fillRect(0, 162 * vs, this.canvas.width, 18 * vs);
-                    c.fillStyle = '#879864';
+                    c.fillStyle = '#ffffff';
                     c.font = 'bold ' + Math.round(12 * hs) + 'px monospace';
                     c.textAlign = 'center';
                     c.fillText(this.shopFlash.text, this.canvas.width / 2, 154 * vs);
@@ -2956,9 +2956,9 @@ function getUniquePetName() {
                 const hs = this.canvas.width / 310;
                 const vs = this.canvas.height / 180;
 
-                c.fillStyle = '#1f2a08';
+                c.fillStyle = '#000000';
                 c.fillRect(0, 0, this.canvas.width, 18 * vs);
-                c.fillStyle = '#879864';
+                c.fillStyle = '#ffffff';
                 c.font = 'bold ' + Math.round(13 * hs) + 'px monospace';
                 c.fillText(TAMA_I18N.t('ach.title', { unlocked: Object.keys(this.achievements.unlocked).length, total: ACHIEVEMENTS.length }), 8 * hs, 13 * vs);
 
@@ -2973,10 +2973,10 @@ function getUniquePetName() {
                     c.save();
                     if (!unlocked) c.globalAlpha = 0.55;
 
-                    c.fillStyle = unlocked ? '#526333' : 'rgba(31,42,8,0.18)';
+                    c.fillStyle = unlocked ? '#a9a9a9' : 'rgba(0,0,0,0.18)';
                     c.fillRect(6 * hs, y, 16 * hs, 16 * vs);
                     c.font = Math.round(13 * hs) + 'px monospace';
-                    c.fillStyle = '#1f2a08';
+                    c.fillStyle = '#000000';
                     c.fillText(unlocked ? def.icon : '🔒', 8 * hs, y + 12 * vs);
 
                     c.font = 'bold ' + Math.round(13 * hs) + 'px monospace';
@@ -2995,7 +2995,7 @@ function getUniquePetName() {
                     c.textAlign = 'left';
                     c.restore();
 
-                    c.fillStyle = 'rgba(31,42,8,0.2)';
+                    c.fillStyle = 'rgba(0,0,0,0.2)';
                     c.fillRect(6 * hs, y + rowH - 3 * vs, 298 * hs, 1 * vs);
                 }
 
@@ -3058,9 +3058,9 @@ function getUniquePetName() {
                 const totalPets = this.petHistory.length + this.pets.length;
                 const maxGen = Math.max(1, ...this.petHistory.map(e => e.generation), ...this.pets.map(p => p.generation));
 
-                c.fillStyle = '#1f2a08';
+                c.fillStyle = '#000000';
                 c.fillRect(0, 0, this.canvas.width, 18 * vs);
-                c.fillStyle = '#879864';
+                c.fillStyle = '#ffffff';
                 c.font = 'bold ' + Math.round(13 * hs) + 'px monospace';
                 c.fillText(TAMA_I18N.t('tree.title', { gen: maxGen, pets: totalPets }), 8 * hs, 13 * vs);
 
@@ -3074,9 +3074,9 @@ function getUniquePetName() {
                     const y = startY + i * rowH;
 
                     if (row.type === 'gen') {
-                        c.fillStyle = 'rgba(31,42,8,0.25)';
+                        c.fillStyle = 'rgba(0,0,0,0.25)';
                         c.fillRect(0, y, this.canvas.width, 12 * vs);
-                        c.fillStyle = '#1f2a08';
+                        c.fillStyle = '#000000';
                         c.font = 'bold ' + Math.round(12 * hs) + 'px monospace';
                         c.fillText(TAMA_I18N.t('tree.genHead', { gen: row.gen }), 8 * hs, y + 9 * vs);
                         continue;
@@ -3085,12 +3085,12 @@ function getUniquePetName() {
                     const pet = row.pet;
 
                     // Ritratto: uovo se ancora uovo, altrimenti sprite della specie
-                    c.fillStyle = 'rgba(31,42,8,0.18)';
+                    c.fillStyle = 'rgba(0,0,0,0.18)';
                     c.fillRect(6 * hs, y, 16 * hs, 16 * vs);
                     const sprite = pet.fate === 'EGG' ? this.SPRITES.BREED : (SPECIES[pet.species] || SPECIES.BLOB).sprite;
                     this.drawPixelSprite(sprite, 6 * hs, y, Math.max(1, Math.round(hs)));
 
-                    c.fillStyle = '#1f2a08';
+                    c.fillStyle = '#000000';
                     c.font = 'bold ' + Math.round(13 * hs) + 'px monospace';
                     c.fillText(pet.name, 28 * hs, y + 8 * vs);
 
@@ -3104,7 +3104,7 @@ function getUniquePetName() {
                     const origin = pet.parentName ? TAMA_I18N.t('tree.parent', { name: pet.parentName }) : TAMA_I18N.t('tree.founder');
                     c.fillText(`${origin} · 🍖${pet.stats.feeds} ⭐${pet.stats.wins} 🧹${pet.stats.cleans} 💉${pet.stats.heals}`, 28 * hs, y + 17 * vs);
 
-                    c.fillStyle = 'rgba(31,42,8,0.2)';
+                    c.fillStyle = 'rgba(0,0,0,0.2)';
                     c.fillRect(6 * hs, y + rowH - 3 * vs, 298 * hs, 1 * vs);
                 }
 
@@ -3283,7 +3283,7 @@ function getUniquePetName() {
                         for (let c = 0; c < map[r].length; c++) {
                             const ch = map[r][c];
                             if (ch === '.') continue;
-                            ctx.fillStyle = ch === '#' ? '#1f2a08' : (ch === '-' ? '#879864' : '#526333');
+                            ctx.fillStyle = ch === '#' ? '#000000' : (ch === '-' ? '#ffffff' : '#a9a9a9');
                             ctx.fillRect(Math.floor(c * scale), Math.floor(r * scale), Math.ceil(scale), Math.ceil(scale));
                         }
                     }
