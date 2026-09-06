@@ -32,16 +32,6 @@
             overflow: hidden;
         }
 
-        @keyframes bannerWiggle {
-            0%, 100% { transform: translateY(0) rotate(0deg); }
-            25% { transform: translateY(-5px) rotate(-1.5deg); }
-            75% { transform: translateY(-5px) rotate(1.5deg); }
-        }
-
-        .egg-banner-wiggle {
-            animation: bannerWiggle 1.2s ease-in-out infinite;
-        }
-
         @keyframes achPop {
             0% { transform: translate(-50%, -24px) scale(0.7); opacity: 0; }
             60% { transform: translate(-50%, 0) scale(1.06); opacity: 1; }
@@ -553,17 +543,6 @@
 </head>
 <body class="widget-open overflow-x-hidden font-sans">
 
-    <!-- EGG FOUND BANNER POPUP -->
-    <div id="eggFoundBanner" class="hidden fixed bottom-24 right-6 z-[100000] cursor-pointer" title="Un uovo!">
-        <div class="egg-banner-wiggle bg-gradient-to-b from-slate-600 to-slate-700 rounded-2xl p-3 shadow-2xl border-4 border-slate-800 flex items-center gap-3">
-            <div class="w-12 h-12 bg-[#879864] border-2 border-[#526333] rounded-lg flex items-center justify-center text-2xl shadow-inner">🥚</div>
-            <div class="text-white font-mono pr-1">
-                <div class="text-[9px] font-bold italic tracking-wider text-amber-300">POCKET PET '96</div>
-                <div id="eggBannerText" class="text-sm font-bold">Hai trovato un uovo!</div>
-            </div>
-        </div>
-    </div>
-
     <!-- FLOATING TAMAGOTCHI WIDGET CONTAINER -->
     <div id="tamagotchiWidgetRoot" class="fixed bottom-6 right-6 z-[99999] flex flex-col items-end">
 
@@ -644,6 +623,26 @@
                             <h3 id="modalTitle" class="text-xs font-bold uppercase mb-1">AVVISO</h3>
                             <p id="modalBody" class="text-[11px] leading-tight mb-3">Messaggio avviso</p>
                             <button id="modalBtn" class="bg-[#1f2a08] text-[#879864] px-3 py-1 text-xs font-bold rounded">OK</button>
+                        </div>
+
+                        <!-- Game Over Screen: statistiche finale partita -->
+                        <div id="gameOverModal" class="hidden absolute inset-0 bg-[#879864]/95 flex flex-col items-center justify-center p-3 text-center z-20">
+                            <h3 class="text-sm font-bold uppercase mb-1 tracking-widest">💀 GAME OVER</h3>
+                            <p class="text-[11px] leading-tight mb-2">La tua dinastia si è estinta. Nessun pet è rimasto.</p>
+                            <pre id="gameOverStats" class="w-full max-w-[280px] text-[11px] leading-[1.35] text-left font-mono whitespace-pre overflow-x-auto mb-3 mx-auto"></pre>
+                            <div class="flex gap-2 flex-wrap justify-center">
+                                <button id="gameOverMenuBtn" class="bg-[#1f2a08] text-[#879864] px-3 py-1 text-xs font-bold rounded">⬅ Torna Al menu</button>
+                            </div>
+                        </div>
+
+                        <!-- Pre-Game Screen: menu principale -->
+                        <div id="startScreen" class="hidden absolute inset-0 bg-[#879864]/95 flex flex-col items-center justify-center p-3 text-center z-20">
+                            <pre id="menuTitleArt" class="text-[10px] leading-[1.2] font-mono whitespace-pre text-[#1f2a08] mb-2"></pre>
+                            <p class="text-[11px] leading-tight mb-3">Pronto per una nuova partita?</p>
+                            <div class="flex flex-col gap-2 w-full max-w-[220px]">
+                                <button id="startNewGameBtn" class="bg-[#1f2a08] text-[#879864] px-3 py-2 text-xs font-bold rounded">▶ Nuova partita</button>
+                                <button id="startSettingsBtn" class="bg-[#1f2a08] text-[#879864] px-3 py-2 text-xs font-bold rounded">⚙ Impostazioni</button>
+                            </div>
                         </div>
 
                         <!-- Settings Modal: AI model picker + suoni + lingua voce -->
@@ -1274,7 +1273,8 @@ function getUniquePetName() {
                 this.isWaitingEgg = false;
                 this.nextEggAt = null;
                 this.eggWaitTimeout = null;
-                this.eggBannerTimeout = null;
+                this.isGameOver = false;
+                this.showStartScreen = false;
 
                 this.initDOM();
                 this.loadGame();
@@ -1283,12 +1283,6 @@ function getUniquePetName() {
             }
 
             initDOM() {
-                document.getElementById('eggFoundBanner').addEventListener('click', () => {
-                    this.hideEggBanner();
-                    audio.init();
-                    audio.playChime();
-                });
-
                 // Header tracciatori cliccabili: Shop / Trofei / Albero (al posto dei tasti sotto)
                 ['coinTracker', 'achTracker', 'genTracker'].forEach(id => {
                     const el = document.getElementById(id);
@@ -1331,7 +1325,7 @@ function getUniquePetName() {
                 let swipeStartX = null;
                 const onCanvasTouchStart = (e) => {
                     if (this.miniGameActive || this.shopScreenOpen || this.achScreenOpen || this.treeScreenOpen) return;
-                    if (!document.getElementById('overlayModal').classList.contains('hidden')) return;
+                    if (this.isBlocked()) return;
                     swipeStartX = e.touches[0].clientX;
                 };
                 const onCanvasTouchEnd = (e) => {
@@ -1407,7 +1401,7 @@ function getUniquePetName() {
 
             switchPet(dir) {
                 if (this.miniGameActive || this.shopScreenOpen || this.achScreenOpen || this.treeScreenOpen) return;
-                if (!document.getElementById('overlayModal').classList.contains('hidden')) return;
+                if (this.isBlocked()) return;
                 const newIndex = this.activePetIndex + dir;
                 if (newIndex < 0 || newIndex >= this.pets.length) return;
                 this.activePetIndex = newIndex;
@@ -1433,6 +1427,7 @@ function getUniquePetName() {
             }
 
             handleABC(btn) {
+                if (this.isGameOver || this.showStartScreen) return;
                 if (!document.getElementById('overlayModal').classList.contains('hidden')) {
                     if (btn === 'B') {
                         audio.playBeep(600, 'square', 0.06);
@@ -1745,8 +1740,6 @@ function getUniquePetName() {
                 audio.playChime();
                 if (this.isOpen) {
                     this.showModal("UOVO DEPOSTO!", "Un nuovo uovo è stato aggiunto alla famiglia con tratti ereditati!");
-                } else {
-                    this.showEggBanner('Un nuovo uovo in famiglia!');
                 }
                 if (this.petAI && parentPet.canAct()) {
                     this.startLiveSpeech(parentPet, {
@@ -1858,8 +1851,6 @@ function getUniquePetName() {
                     this.achievements.record('HATCH', hatched.species);
                     if (this.isOpen) {
                         this.showModal('SCHIUSO!', `L'uovo si è schiuso: è nato ${hatched.name}!`);
-                    } else {
-                        this.showEggBanner(`È nato ${hatched.name}!`);
                     }
                     if (this.petAI && hatched.canAct()) {
                         this.startLiveSpeech(hatched, {
@@ -1886,7 +1877,7 @@ function getUniquePetName() {
                         this.achievements.record('DEPARTED');
                         this.archivePet(currentPet, 'DEPARTED');
                         const toyLoss = currentPet.toys && currentPet.toys.length ? ` I suoi ${currentPet.toys.length} toy sono andati con lui.` : '';
-                        this.showModal("ADDIO", `${currentPet.name} è partito felicemente per il Pianeta Pet, lasciando spazio alle nuove generazioni!${toyLoss}`, wasLastPet ? () => this.startEggWaiting() : null);
+                        this.showModal("ADDIO", `${currentPet.name} è partito felicemente per il Pianeta Pet, lasciando spazio alle nuove generazioni!${toyLoss}`, wasLastPet ? () => this.triggerGameOver() : null);
                         this.pets.splice(this.activePetIndex, 1);
                         if (!wasLastPet) this.activePetIndex = 0;
                         this.checkAchievements();
@@ -2351,6 +2342,7 @@ function getUniquePetName() {
             // Click sul display: traduce le coordinate e agisce in base alla schermata
             handleCanvasClick(e) {
                 if (!this.isOpen) return;
+                if (this.isGameOver || this.showStartScreen) return;
                 if (!document.getElementById('overlayModal').classList.contains('hidden')) return;
 
                 const rect = this.canvas.getBoundingClientRect();
@@ -2496,7 +2488,7 @@ function getUniquePetName() {
 
             toggleShop() {
                 if (!this.isOpen || this.miniGameActive) return;
-                if (!document.getElementById('overlayModal').classList.contains('hidden')) return;
+                if (this.isBlocked()) return;
                 if (this.achScreenOpen) this.achScreenOpen = false;
                 if (this.treeScreenOpen) this.treeScreenOpen = false;
 
@@ -2835,7 +2827,7 @@ function getUniquePetName() {
                 this.drawStatIcons();
                 const pet = this.getActivePet();
 
-                document.getElementById('petCountLabel').innerText = this.isWaitingEgg ? '---' : `${this.activePetIndex + 1}/${this.pets.length}`;
+                document.getElementById('petCountLabel').innerText = (this.isWaitingEgg || this.isGameOver || this.showStartScreen) ? '---' : `${this.activePetIndex + 1}/${this.pets.length}`;
 
                 document.getElementById('achTracker').innerText = `🏆 ${Object.keys(this.achievements.unlocked).length}/${ACHIEVEMENTS.length}`;
 
@@ -2868,11 +2860,11 @@ function getUniquePetName() {
 
                 if (pet.stage === 'DEAD') {
                     const toyLoss = pet.toys && pet.toys.length ? ` I suoi toy sono andati perduti con lui.` : '';
-                    this.showModal("PET DECEDUTO", `Il tuo pet è morto per negligenza.${toyLoss} Un nuovo uovo apparirà tra poco...`, () => {
+                    this.showModal("PET DECEDUTO", `Il tuo pet è morto per negligenza.${toyLoss}`, () => {
                         this.archivePet(pet, 'DEAD');
                         this.pets.splice(this.activePetIndex, 1);
                         if (this.pets.length === 0) {
-                            this.startEggWaiting();
+                            this.triggerGameOver();
                         } else {
                             this.activePetIndex = 0;
                             this.saveGame();
@@ -2910,8 +2902,6 @@ function getUniquePetName() {
                 }
                 this.nextEggAt = Date.now() + delayMs;
 
-                this.hideEggBanner();
-
                 this.eggWaitTimeout = setTimeout(() => this.eggFound(), delayMs);
 
                 this.saveGame();
@@ -2928,28 +2918,99 @@ function getUniquePetName() {
                 this.activePetIndex = 0;
                 this.totalPetsRaised = 1;
 
-                this.showEggBanner();
-
                 this.saveGame();
                 this.updateUI();
             }
 
-            showEggBanner(text = 'Hai trovato un uovo!') {
-                const banner = document.getElementById('eggFoundBanner');
-                document.getElementById('eggBannerText').innerText = text;
-                if (this.eggBannerTimeout) clearTimeout(this.eggBannerTimeout);
-                banner.classList.remove('hidden');
-                audio.playChime();
-                this.eggBannerTimeout = setTimeout(() => this.hideEggBanner(), CONFIG.ui.eggBannerSeconds * 1000);
+            triggerGameOver() {
+                this.isGameOver = true;
+                this.isWaitingEgg = false;
+                this.showStartScreen = false;
+                this.nextEggAt = null;
+                if (this.eggWaitTimeout) { clearTimeout(this.eggWaitTimeout); this.eggWaitTimeout = null; }
+                if (this.petAI) this.petAI.resetMemories();
+                this.saveGame();
+
+                const s = this.achievements.stats;
+                const history = this.petHistory;
+                const deadCount = history.filter(e => e.fate === 'DEAD').length;
+                const departedCount = history.filter(e => e.fate === 'DEPARTED').length;
+                const rows = [
+                    ['Pet allevati', `${Math.max(this.totalPetsRaised, s.totalRaised)}`],
+                    ['Generazione max', `${Math.max(this.highestGen, s.maxGen)}`],
+                    ['Monete', `${Math.floor(this.coins)}`],
+                    ['Trofei', `${Object.keys(this.achievements.unlocked).length}/${ACHIEVEMENTS.length}`],
+                    ['Schiusi', `${s.hatchedCount}`],
+                    ['Depositi', `${s.breedsCount}`],
+                    ['Pasti', `${s.feedsCount}`],
+                    ['Pulizie', `${s.cleansCount}`],
+                    ['Cure', `${s.healsCount}`],
+                    ['Vittorie', `${s.winsCount}`],
+                    ['Partiti', `${departedCount}`],
+                    ['Deceduti', `${deadCount}`],
+                    ['Specie viste', `${s.speciesSeen.length}`]
+                ];
+                const labelW = 15;
+                const boxW = labelW + 12;
+                let box = '┌' + '─'.repeat(boxW) + '┐\n';
+                box += '│' + ' POCKET PET \'96'.padEnd(boxW) + '│\n';
+                box += '│' + '─'.repeat(boxW) + '│\n';
+                for (const [k, v] of rows) {
+                    box += '│' + (k.padEnd(labelW) + v.padStart(10)).padEnd(boxW) + '│\n';
+                }
+                box += '│' + '─'.repeat(boxW) + '│\n';
+                box += '│' + ' STATISTICHE FINALI '.padEnd(boxW) + '│\n';
+                box += '└' + '─'.repeat(boxW) + '┘';
+                document.getElementById('gameOverStats').textContent = box;
+
+                const gom = document.getElementById('gameOverModal');
+                if (gom) gom.classList.remove('hidden');
+                this.updateUI();
             }
 
-            hideEggBanner() {
-                if (this.eggBannerTimeout) {
-                    clearTimeout(this.eggBannerTimeout);
-                    this.eggBannerTimeout = null;
-                }
-                document.getElementById('eggFoundBanner').classList.add('hidden');
+            startNewGame() {
+                this.pets = [];
+                this.activePetIndex = 0;
+                this.totalPetsRaised = 0;
+                this.highestGen = 1;
+                this.coins = 0;
+                this.petHistory = [];
+                this.seniorSeenIds = new Set();
+                this.achievements = new Achievements();
+                this.isGameOver = false;
+                this.isWaitingEgg = false;
+                this.showStartScreen = false;
+                this.nextEggAt = null;
+                if (this.eggWaitTimeout) { clearTimeout(this.eggWaitTimeout); this.eggWaitTimeout = null; }
+                if (this.petAI) this.petAI.resetMemories();
+
+                const gom = document.getElementById('gameOverModal');
+                if (gom) gom.classList.add('hidden');
+                const ss = document.getElementById('startScreen');
+                if (ss) ss.classList.add('hidden');
+
+                this.startEggWaiting(0);
             }
+
+            showStartScreenModal() {
+                this.isGameOver = false;
+                this.showStartScreen = true;
+                const gom = document.getElementById('gameOverModal');
+                if (gom) gom.classList.add('hidden');
+                const ss = document.getElementById('startScreen');
+                if (ss) ss.classList.remove('hidden');
+            }
+
+            hideStartScreenModal() {
+                this.showStartScreen = false;
+                const ss = document.getElementById('startScreen');
+                if (ss) ss.classList.add('hidden');
+            }
+
+            isBlocked() {
+                return this.isGameOver || this.showStartScreen || !document.getElementById('overlayModal').classList.contains('hidden');
+            }
+
 
             saveGame() {
                 const data = {
@@ -2974,9 +3035,11 @@ function getUniquePetName() {
                     try {
                         const parsed = JSON.parse(saved);
                         this.achievements.deserialize(parsed.achievements);
-                        if (parsed.isWaitingEgg || !parsed.pets || parsed.pets.length === 0) {
-                            const remaining = (parsed.isWaitingEgg && parsed.nextEggAt) ? Math.max(0, parsed.nextEggAt - Date.now()) : undefined;
+                        if (parsed.isWaitingEgg) {
+                            const remaining = parsed.nextEggAt ? Math.max(0, parsed.nextEggAt - Date.now()) : undefined;
                             this.startEggWaiting(remaining);
+                        } else if (!parsed.pets || parsed.pets.length === 0) {
+                            this.showStartScreenModal();
                         } else {
                             this.pets = parsed.pets.map(pData => new Pet(pData));
                             this.activePetIndex = Math.min(parsed.activePetIndex || 0, this.pets.length - 1);
@@ -2989,10 +3052,10 @@ function getUniquePetName() {
                             this._pendingShortTerm = parsed.petShortTerm || {};
                         }
                     } catch(e) {
-                        this.startEggWaiting();
+                        this.showStartScreenModal();
                     }
                 } else {
-                    this.startEggWaiting();
+                    this.showStartScreenModal();
                 }
             }
         }
@@ -3014,6 +3077,24 @@ function getUniquePetName() {
 
         function initPetAI() {
             const engine = window.tamaEngine;
+            const menuTitle = document.getElementById('menuTitleArt');
+            if (menuTitle) {
+                menuTitle.textContent = [
+                    '┌─────────────────────────┐',
+                    '│  ██████  ██  ██████  ██  │',
+                    '│  ██  ██  ██  ██      ██  │',
+                    '│  ██████  ██  ██████  ██  │',
+                    '│  ██      ██      ██      │',
+                    '│  ██      ██  ██████  ██  │',
+                    '├─────────────────────────┤',
+                    '│    ██ ██████ ██████      │',
+                    '│    ██ ██  ██ ██          │',
+                    '│    ██ ██████ ██████      │',
+                    '│    ██ ██    ██          │',
+                    '│    ██ ██    ██████      │',
+                    '└─────────────────────────┘'
+                ].join('\n');
+            }
             if (!engine) {
                 setTimeout(initPetAI, 200);
                 return;
@@ -3034,7 +3115,7 @@ function getUniquePetName() {
                 modelId: getSavedModelId(),
                 lang: getSetting(SET_LANG_KEY, 'en-US'),
                 maxCacheSize: 5,
-                enabled: getSetting(SET_AI_KEY, '1') !== '0',
+                enabled: getSetting(SET_AI_KEY, '0') !== '0',
             });
 
             engine.petAI = petAI;
@@ -3113,18 +3194,12 @@ function getUniquePetName() {
             // Snapshot dell'ultima configurazione AI applicata/salvata, per il ripristino su Annulla.
             const savedAiState = { modelId: petAI.modelId, enabled: petAI.enabled };
 
-            // Applica il mute suoni salvato all'avvio.
-            if (window.audio) window.audio.setEnabled(getSetting(SET_SOUND_KEY, '1') !== '0');
-
-            // Applica il mute voce salvato all'avvio.
-            if (engine.petSynth) engine.petSynth.setEnabled(getSetting(SET_VOICE_KEY, '1') !== '0');
-
             // Sincronizza i controlli della modale con i valori salvati.
             const syncSettingsControls = () => {
                 if (soundToggle) soundToggle.checked = getSetting(SET_SOUND_KEY, '1') !== '0';
                 if (voiceToggle) voiceToggle.checked = getSetting(SET_VOICE_KEY, '1') !== '0';
                 if (langSelect) langSelect.value = getSetting(SET_LANG_KEY, 'en-US');
-                const aiEnabled = getSetting(SET_AI_KEY, '1') !== '0';
+                const aiEnabled = getSetting(SET_AI_KEY, '0') !== '0';
                 if (aiToggle) aiToggle.checked = aiEnabled;
                 if (modelSelect) {
                     modelSelect.disabled = !aiEnabled;
@@ -3281,6 +3356,12 @@ function getUniquePetName() {
             });
 
             if (settingsBtn) settingsBtn.addEventListener('click', openSettings);
+            const startNewGameBtn = document.getElementById('startNewGameBtn');
+            const startSettingsBtn = document.getElementById('startSettingsBtn');
+            const gameOverMenuBtn = document.getElementById('gameOverMenuBtn');
+            if (startNewGameBtn) startNewGameBtn.addEventListener('click', () => engine.startNewGame());
+            if (startSettingsBtn) startSettingsBtn.addEventListener('click', openSettings);
+            if (gameOverMenuBtn) gameOverMenuBtn.addEventListener('click', () => engine.showStartScreenModal());
             if (settingsCancelBtn) settingsCancelBtn.addEventListener('click', () => {
                 restoreSettings();
                 closeSettings();
@@ -3291,6 +3372,7 @@ function getUniquePetName() {
                     const newEnabled = aiToggle ? aiToggle.checked : true;
                     const aiChanged = newEnabled !== petAI.enabled;
                     const modelChanged = newId !== petAI.modelId;
+                    let savedLangChanged = false;
                     saveModelId(newId);
                     if (window.audio && soundToggle) {
                         window.audio.setEnabled(soundToggle.checked);
@@ -3302,17 +3384,19 @@ function getUniquePetName() {
                     }
                     if (langSelect) {
                         const lang = langSelect.value || 'en-US';
+                        const langChanged = lang !== petAI.lang;
                         setSetting(SET_LANG_KEY, lang);
                         synth.lang = lang;
                         if (petAI) petAI.lang = lang;
                         if (recognizer.recognition) recognizer.recognition.lang = lang;
                         if (synth._loadVoices) synth._loadVoices();
+                        if (langChanged) savedLangChanged = true;
                     }
                     setSetting(SET_AI_KEY, newEnabled ? '1' : '0');
                     savedAiState.modelId = newId;
                     savedAiState.enabled = newEnabled;
                     closeSettings();
-                    if (aiChanged || modelChanged) {
+                    if (aiChanged || modelChanged || (savedLangChanged && petAI.enabled)) {
                         await reloadPetAI({ modelId: newId, enabled: newEnabled });
                     }
                 });
@@ -3333,6 +3417,11 @@ function getUniquePetName() {
             recognizer.lang = savedLang;
             if (recognizer.recognition) recognizer.recognition.lang = savedLang;
             if (synth._loadVoices) synth._loadVoices();
+
+            // Applica il mute suoni e voce salvato all'avvio (dopo la creazione
+            // degli oggetti, altrimenti il mute non verrebbe mai applicato).
+            if (window.audio) window.audio.setEnabled(getSetting(SET_SOUND_KEY, '1') !== '0');
+            synth.setEnabled(getSetting(SET_VOICE_KEY, '1') !== '0');
 
             // === Mic (azione nel menu) ===
             if (recognizer.isSupported()) {

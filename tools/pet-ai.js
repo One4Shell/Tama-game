@@ -889,6 +889,14 @@ export class PetAI extends EventTarget {
     }
 
     /**
+     * Clear every memory (long-term + short-term) for a brand-new game.
+     */
+    resetMemories() {
+        this.memories.clear();
+        this.shortTermMemories.clear();
+    }
+
+    /**
      * Serialise short-term memories (consciousness) of every pet.
      */
     serializeShortTerm() {
