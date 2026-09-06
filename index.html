@@ -1376,6 +1376,7 @@ function getUniquePetName() {
                 this.speechShowDuration = 480;
                 this.speechGenerating = false;
                 this.speechToken = 0;
+                this.speechCooldownUntil = 0; // Date.now() prima del quale il parlato guidato da eventi è silenziato
                 this.notifAIText = new Map();
 
                 this.speechRecognizer = null;
@@ -1560,7 +1561,7 @@ function getUniquePetName() {
                 // Show the new pet's speech
                 if (this.petAI) {
                     const newPet = this.getActivePet();
-                    if (newPet && newPet.canAct()) {
+                    if (newPet && newPet.canAct() && this.canSpeak(30000)) {
                         this.startLiveSpeech(newPet, {
                             event: { type: 'SWITCH', detail: 'The user just came over to see me. Greet them warmly, ask how their day is going, and share a passing thought about what I was doing.' }
                         });
@@ -1715,10 +1716,11 @@ function getUniquePetName() {
                         break;
                 }
 
-                // Trigger AI speech dopo un'azione
+                // Trigger AI speech dopo un'azione: solo se è passato il
+                // cooldown di 60s (il microfono risponde invece sempre).
                 if (this.petAI && pet.canAct()) {
                     const evt = this.speechEventForAction(action, pet);
-                    if (evt) {
+                    if (evt && this.canSpeak(60000)) {
                         this.startLiveSpeech(pet, { event: evt });
                     }
                 }
@@ -1753,6 +1755,20 @@ function getUniquePetName() {
                 if (this.petSynth) this.petSynth.stop();
                 this.isListening = true;
                 recognizer.start();
+            }
+
+            /**
+             * Gate per il parlato guidato da eventi: ritorna true solo se è
+             * passato il cooldown (cooldownMs) dall'ultima frase e, in quel
+             * caso, registra subito il nuovo timestamp. Così le azioni
+             * ripetitive non fanno parlare il pet ad ogni tap, mentre il
+             * microfono risponde sempre (non passa da qui).
+             */
+            canSpeak(cooldownMs) {
+                const now = Date.now();
+                if (now < this.speechCooldownUntil) return false;
+                this.speechCooldownUntil = now + cooldownMs;
+                return true;
             }
 
             speechEventForAction(action, pet) {
@@ -1889,7 +1905,7 @@ function getUniquePetName() {
                 if (this.isOpen) {
                     this.showModal(TAMA_I18N.t('modal.eggLaid.title'), TAMA_I18N.t('modal.eggLaid.body'));
                 }
-                if (this.petAI && parentPet.canAct()) {
+                if (this.petAI && parentPet.canAct() && this.canSpeak(30000)) {
                     this.startLiveSpeech(parentPet, {
                         event: { type: 'BREED', detail: 'I just laid an egg! Comment on this special moment in a short, proud line.' }
                     });
@@ -1932,7 +1948,7 @@ function getUniquePetName() {
             // Presenta al giocatore il BABY appena nato (modale + frase AI).
             presentHatch(pet) {
                 if (!pet || pet.stage === 'EGG') return;
-                if (this.petAI && pet.canAct()) {
+                if (this.petAI && pet.canAct() && this.canSpeak(30000)) {
                     this.startLiveSpeech(pet, {
                         event: { type: 'HATCH', detail: 'I just hatched from my egg and I am seeing the world for the first time! React with wonder and curiosity in a baby-like phrase.' }
                     });
@@ -1967,7 +1983,7 @@ function getUniquePetName() {
                             this.achievements.record('WIN');
                             this.coins += 20;
                             this.showModal(TAMA_I18N.t('modal.win.title'), TAMA_I18N.t('modal.win.body'));
-                            if (this.petAI && pet.canAct()) {
+                            if (this.petAI && pet.canAct() && this.canSpeak(30000)) {
                                 this.startLiveSpeech(pet, {
                                     event: { type: 'PLAY', detail: 'The user just beat me at the game. React with playful enthusiasm and friendly rivalry in a short line.' }
                                 });
@@ -2039,7 +2055,7 @@ function getUniquePetName() {
                 const sickPet = this.pets.find(p => p.justGotSick);
                 if (sickPet) {
                     sickPet.justGotSick = false;
-                    if (this.petAI && sickPet.canAct() && !this.miniGameActive) {
+                    if (this.petAI && sickPet.canAct() && !this.miniGameActive && this.canSpeak(30000)) {
                         this.startLiveSpeech(sickPet, {
                             event: { type: 'SICK', detail: 'I just got sick. Communicate that you feel unwell and ask the user for help in a short, needy line.' }
                         });
@@ -3462,7 +3478,7 @@ function getUniquePetName() {
                 // (replaces any pre-written phrase shown during loading).
                 if (e.detail === 'ready') {
                     const pet = engine.getActivePet();
-                    if (pet && pet.canAct() && !engine.speechGenerating) {
+                    if (pet && pet.canAct() && !engine.speechGenerating && engine.canSpeak(30000)) {
                         engine.startLiveSpeech(pet, {
                             event: { type: 'GREET', detail: 'The user just opened the game and came to see you. Greet them in one short, warm line and ask how their day is going.' }
                         });
@@ -3488,11 +3504,11 @@ function getUniquePetName() {
                 const pet = engine.getActivePet();
                 if (pet && pet.canAct() && !engine.speechGenerating) {
                     engine.applyPetVoice();
-                    if (petAI.ready) {
+                    if (petAI.ready && engine.canSpeak(30000)) {
                         engine.startLiveSpeech(pet, {
                             event: { type: 'GREET', detail: 'The user just opened the game and came to see you. Greet them in one short, warm line and ask how their day is going.' }
                         });
-                    } else {
+                    } else if (!petAI.ready) {
                         const fallback = petAI.getFallbackPhrase(pet);
                         engine.petSpeech = fallback;
                         engine.speechTimer = engine.speechShowDuration;
@@ -3900,6 +3916,9 @@ function getUniquePetName() {
 
                     // Genera la risposta in streaming: salva anche la memoria.
                     // Il TTS è gestito internamente da startLiveSpeech.
+                    // Il microfono risponde SEMPRE, senza cooldown; azzera il
+                    // timer così l'azione successiva non viene bloccata.
+                    engine.speechCooldownUntil = 0;
                     engine.startLiveSpeech(pet, {
                         userText: transcript
                     });
