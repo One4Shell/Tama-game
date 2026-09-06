@@ -539,6 +539,128 @@
             .lcd-meter { height: 10px; }
         }
 
+        /* ===== GAME OVER / SCHERMATA FINALE ===== */
+        @keyframes goBlink {
+            0%, 49% { opacity: 1; }
+            50%, 100% { opacity: 0.25; }
+        }
+        .go-blink { animation: goBlink 1.1s steps(1, end) infinite; }
+
+        @keyframes goPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+        }
+
+        .go-panel {
+            animation: goPulse 2.4s ease-in-out infinite;
+            width: min(420px, 92vw);
+            max-height: 94%;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 16px 16px;
+            background: rgba(31, 42, 8, 0.14);
+            border: 2px solid #526333;
+            border-radius: 4px;
+            box-shadow: inset 0 0 0 3px rgba(31, 42, 8, 0.25), 0 8px 24px rgba(0, 0, 0, 0.45);
+        }
+
+        .go-banner {
+            font: 900 clamp(20px, 5vw, 40px)/1 'Courier New', Courier, monospace;
+            letter-spacing: 0.12em;
+            color: #1f2a08;
+            text-shadow: 0 2px 0 rgba(31, 42, 8, 0.35);
+            white-space: nowrap;
+        }
+
+        .go-subtitle {
+            font: 700 clamp(10px, 1.6vw, 13px)/1.4 'Courier New', Courier, monospace;
+            color: #1f2a08;
+            opacity: 0.85;
+            letter-spacing: 0.08em;
+            text-align: center;
+            max-width: 300px;
+        }
+
+        .go-sprite {
+            width: 48px;
+            height: 48px;
+            image-rendering: pixelated;
+            background: rgba(31, 42, 8, 0.1);
+            border: 2px solid #526333;
+            border-radius: 4px;
+        }
+
+        .go-panel-head {
+            width: 100%;
+            font: 900 clamp(11px, 1.8vw, 14px)/1 'Courier New', Courier, monospace;
+            letter-spacing: 0.2em;
+            color: #1f2a08;
+            text-align: center;
+            padding: 6px 0;
+            border-top: 2px solid #526333;
+            border-bottom: 2px solid #526333;
+        }
+
+        .go-stats {
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px 14px;
+            font: 700 clamp(11px, 1.7vw, 14px)/1 'Courier New', Courier, monospace;
+            color: #1f2a08;
+        }
+
+        .go-stat {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 6px;
+            padding: 4px 6px;
+            background: rgba(31, 42, 8, 0.08);
+            border-left: 3px solid #526333;
+        }
+        .go-stat .label { opacity: 0.78; text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.82em; }
+        .go-stat .value { font-weight: 900; }
+
+        .go-actions {
+            width: 100%;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 4px;
+        }
+
+        .go-btn {
+            font: 900 clamp(11px, 1.8vw, 13px)/1 'Courier New', Courier, monospace;
+            letter-spacing: 0.04em;
+            color: #879864;
+            background: #1f2a08;
+            border: 2px solid #1f2a08;
+            border-radius: 3px;
+            padding: 10px 16px;
+            cursor: pointer;
+            box-shadow: 0 3px 0 #0d1304, 0 5px 8px rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.12);
+            transition: transform 0.06s ease, box-shadow 0.06s ease, filter 0.06s ease;
+        }
+        .go-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0 #0d1304, 0 2px 3px rgba(0, 0, 0, 0.4), inset 0 1px 3px rgba(0, 0, 0, 0.35);
+            filter: brightness(0.95);
+        }
+        .go-btn--primary {
+            color: #1f2a08;
+            background: linear-gradient(#ffe9a8, #f2c94c 55%, #e0b53c);
+            border-color: #a8862a;
+            box-shadow: 0 3px 0 #a8862a, 0 5px 8px rgba(0, 0, 0, 0.45), inset 0 2px 3px rgba(255, 255, 255, 0.7);
+        }
+        .go-btn--primary:active {
+            box-shadow: 0 1px 0 #a8862a, 0 2px 3px rgba(0, 0, 0, 0.4), inset 0 2px 4px rgba(0, 0, 0, 0.25);
+        }
+
     </style>
 </head>
 <body class="widget-open overflow-x-hidden font-sans">
@@ -626,12 +748,17 @@
                         </div>
 
                         <!-- Game Over Screen: statistiche finale partita -->
-                        <div id="gameOverModal" class="hidden absolute inset-0 bg-[#879864]/95 flex flex-col items-center justify-center p-3 text-center z-20">
-                            <h3 class="text-sm font-bold uppercase mb-1 tracking-widest">💀 GAME OVER</h3>
-                            <p class="text-[11px] leading-tight mb-2">La tua dinastia si è estinta. Nessun pet è rimasto.</p>
-                            <pre id="gameOverStats" class="w-full max-w-[280px] text-[11px] leading-[1.35] text-left font-mono whitespace-pre overflow-x-auto mb-3 mx-auto"></pre>
-                            <div class="flex gap-2 flex-wrap justify-center">
-                                <button id="gameOverMenuBtn" class="bg-[#1f2a08] text-[#879864] px-3 py-1 text-xs font-bold rounded">⬅ Torna Al menu</button>
+                        <div id="gameOverModal" class="hidden absolute inset-0 bg-[#879864]/95 flex items-center justify-center p-3 text-center z-20">
+                            <div class="go-panel custom-scrollbar">
+                                <canvas id="gameOverSprite" width="48" height="48" class="go-sprite"></canvas>
+                                <div class="go-banner go-blink">GAME OVER</div>
+                                <p class="go-subtitle">La tua dinastia si è estinta. Nessun pet è rimasto.</p>
+                                <div class="go-panel-head">STATISTICHE FINALI</div>
+                                <div id="gameOverStats" class="go-stats"></div>
+                                <div class="go-actions">
+                                    <button id="gameOverRestartBtn" class="go-btn go-btn--primary">▶ Rigioca</button>
+                                    <button id="gameOverMenuBtn" class="go-btn">⬅ Menu</button>
+                                </div>
                             </div>
                         </div>
 
@@ -1803,9 +1930,6 @@ function getUniquePetName() {
             // Presenta al giocatore il BABY appena nato (modale + frase AI).
             presentHatch(pet) {
                 if (!pet || pet.stage === 'EGG') return;
-                if (this.isOpen) {
-                    this.showModal('SCHIUSO!', `L'uovo si è schiuso: è nato ${pet.name}!`);
-                }
                 if (this.petAI && pet.canAct()) {
                     this.startLiveSpeech(pet, {
                         event: { type: 'HATCH', detail: 'I just hatched from my egg and I am seeing the world for the first time! React with wonder and curiosity in a baby-like phrase.' }
@@ -3141,18 +3265,28 @@ function getUniquePetName() {
                     ['Deceduti', `${deadCount}`],
                     ['Specie viste', `${s.speciesSeen.length}`]
                 ];
-                const labelW = 15;
-                const boxW = labelW + 12;
-                let box = '┌' + '─'.repeat(boxW) + '┐\n';
-                box += '│' + ' POCKET PET \'96'.padEnd(boxW) + '│\n';
-                box += '│' + '─'.repeat(boxW) + '│\n';
-                for (const [k, v] of rows) {
-                    box += '│' + (k.padEnd(labelW) + v.padStart(10)).padEnd(boxW) + '│\n';
+                const statsEl = document.getElementById('gameOverStats');
+                if (statsEl) {
+                    statsEl.innerHTML = rows.map(([k, v]) =>
+                        `<div class="go-stat"><span class="label">${k}</span><span class="value">${v}</span></div>`
+                    ).join('');
                 }
-                box += '│' + '─'.repeat(boxW) + '│\n';
-                box += '│' + ' STATISTICHE FINALI '.padEnd(boxW) + '│\n';
-                box += '└' + '─'.repeat(boxW) + '┘';
-                document.getElementById('gameOverStats').textContent = box;
+                const spriteCvs = document.getElementById('gameOverSprite');
+                if (spriteCvs && this.SPRITES.TROPHY) {
+                    const ctx = spriteCvs.getContext('2d');
+                    const map = this.SPRITES.TROPHY;
+                    const size = spriteCvs.width;
+                    ctx.clearRect(0, 0, size, size);
+                    const scale = size / map.length;
+                    for (let r = 0; r < map.length; r++) {
+                        for (let c = 0; c < map[r].length; c++) {
+                            const ch = map[r][c];
+                            if (ch === '.') continue;
+                            ctx.fillStyle = ch === '#' ? '#1f2a08' : (ch === '-' ? '#879864' : '#526333');
+                            ctx.fillRect(Math.floor(c * scale), Math.floor(r * scale), Math.ceil(scale), Math.ceil(scale));
+                        }
+                    }
+                }
 
                 const gom = document.getElementById('gameOverModal');
                 if (gom) gom.classList.remove('hidden');
@@ -3550,9 +3684,11 @@ function getUniquePetName() {
             const startNewGameBtn = document.getElementById('startNewGameBtn');
             const startSettingsBtn = document.getElementById('startSettingsBtn');
             const gameOverMenuBtn = document.getElementById('gameOverMenuBtn');
+            const gameOverRestartBtn = document.getElementById('gameOverRestartBtn');
             if (startNewGameBtn) startNewGameBtn.addEventListener('click', () => engine.startNewGame());
             if (startSettingsBtn) startSettingsBtn.addEventListener('click', openSettings);
             if (gameOverMenuBtn) gameOverMenuBtn.addEventListener('click', () => engine.showStartScreenModal());
+            if (gameOverRestartBtn) gameOverRestartBtn.addEventListener('click', () => engine.startNewGame());
             if (settingsCancelBtn) settingsCancelBtn.addEventListener('click', () => {
                 restoreSettings();
                 closeSettings();
