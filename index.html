@@ -680,7 +680,6 @@
                             </label>
 
                             <div class="flex gap-2 flex-wrap justify-center">
-                                <button id="settingsReloadBtn" class="bg-[#1f2a08] text-[#879864] px-3 py-1 text-xs font-bold rounded border border-[#526333]">Ricarica</button>
                                 <button id="settingsSaveBtn" class="bg-[#1f2a08] text-[#879864] px-3 py-1 text-xs font-bold rounded">Salva</button>
                                 <button id="settingsCancelBtn" class="bg-[#1f2a08] text-[#879864] px-3 py-1 text-xs font-bold rounded">Annulla</button>
                             </div>
@@ -3104,7 +3103,6 @@ function getUniquePetName() {
             const settingsModal = document.getElementById('settingsModal');
             const modelSelect = document.getElementById('modelSelect');
             const modelVramHint = document.getElementById('modelVramHint');
-            const settingsReloadBtn = document.getElementById('settingsReloadBtn');
             const settingsSaveBtn = document.getElementById('settingsSaveBtn');
             const settingsCancelBtn = document.getElementById('settingsCancelBtn');
             const soundToggle = document.getElementById('soundToggle');
@@ -3168,6 +3166,14 @@ function getUniquePetName() {
             }
 
             function closeSettings() { if (settingsModal) settingsModal.classList.add('hidden'); }
+            function restoreSettings() {
+                if (modelSelect) {
+                    modelSelect.value = petAI.modelId;
+                    const sel = LLM_MODELS.find((m) => m.id === modelSelect.value);
+                    if (modelVramHint) modelVramHint.textContent = sel ? `VRAM stimata: ${sel.vram}` : '';
+                }
+                syncSettingsControls();
+            }
             function openSettings() {
                 if (!settingsModal || !modelSelect) return;
                 modelSelect.value = petAI.modelId;
@@ -3183,8 +3189,6 @@ function getUniquePetName() {
 
             async function reloadPetAI({ modelId = null, enabled = petAI.enabled } = {}) {
                 try {
-                    if (settingsReloadBtn) settingsReloadBtn.disabled = true;
-                    if (settingsSaveBtn) settingsSaveBtn.disabled = true;
                     updateModelStatus('idle');
                     await petAI.unload();
                     petAI.enabled = enabled;
@@ -3200,7 +3204,6 @@ function getUniquePetName() {
                     const statusHint = document.getElementById('modelStatusHint');
                     if (statusHint) statusHint.textContent = `Reload failed: ${err.message}`;
                 } finally {
-                    if (settingsReloadBtn) settingsReloadBtn.disabled = false;
                     if (settingsSaveBtn) settingsSaveBtn.disabled = false;
                 }
             }
@@ -3259,7 +3262,10 @@ function getUniquePetName() {
             });
 
             if (settingsBtn) settingsBtn.addEventListener('click', openSettings);
-            if (settingsCancelBtn) settingsCancelBtn.addEventListener('click', closeSettings);
+            if (settingsCancelBtn) settingsCancelBtn.addEventListener('click', () => {
+                restoreSettings();
+                closeSettings();
+            });
             if (settingsSaveBtn) {
                 settingsSaveBtn.addEventListener('click', async () => {
                     const newId = modelSelect.value;
@@ -3288,15 +3294,6 @@ function getUniquePetName() {
                     if (aiChanged || modelChanged) {
                         await reloadPetAI({ modelId: newId, enabled: newEnabled });
                     }
-                });
-            }
-            if (settingsReloadBtn) {
-                settingsReloadBtn.addEventListener('click', async () => {
-                    const newId = modelSelect.value;
-                    const newEnabled = aiToggle ? aiToggle.checked : true;
-                    saveModelId(newId);
-                    setSetting(SET_AI_KEY, newEnabled ? '1' : '0');
-                    await reloadPetAI({ modelId: newId, enabled: newEnabled });
                 });
             }
 
