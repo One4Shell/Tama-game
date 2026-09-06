@@ -16,6 +16,7 @@ export class PetSynth extends EventTarget {
         this.synth = window.speechSynthesis || null;
         this.voice = null;
         this.speaking = false;
+        this.enabled = true;
         this._supported = false;
         this._queue = [];
 
@@ -35,6 +36,7 @@ export class PetSynth extends EventTarget {
     }
 
     _loadVoices() {
+        if (!this.synth) return;
         const voices = this.synth.getVoices();
         // Pick a voice matching this.lang (preferring an exact match, then the
         // base language, then female-named voices), falling back to English.
@@ -57,6 +59,16 @@ export class PetSynth extends EventTarget {
     }
 
     /**
+     * Enable or disable the voice. When disabled, any current utterance is
+     * stopped and speak() becomes a no-op.
+     * @param {boolean} v Whether the voice is enabled
+     */
+    setEnabled(v) {
+        this.enabled = !!v;
+        if (!this.enabled) this.stop();
+    }
+
+    /**
      * Override the voice profile (pitch/rate) used for the next utterance.
      * The game calls this when switching to a pet whose species has its own
      * tone. Only numeric values provided are applied.
@@ -75,7 +87,7 @@ export class PetSynth extends EventTarget {
      * @param {string} text Text to speak
      */
     speak(text) {
-        if (!this._supported || !text || text.trim().length === 0) return;
+        if (!this._supported || !this.enabled || !text || text.trim().length === 0) return;
 
         // Stop anything currently playing
         this.stop();

@@ -363,6 +363,7 @@ export class PetAI extends EventTarget {
      * @param {string} [options.modelId] MLC prebuilt model id (default: DEFAULT_MODEL_ID from local-llm-engine.js)
      * @param {number} [options.maxCacheSize] Max cached phrases per mood (default 5)
      * @param {number} [options.maxRecentTurns] Recent turns kept by short-term memory (default 10)
+     * @param {boolean} [options.enabled] Whether the LLM is active (default true). When false the pet only uses pre-written fallback phrases.
      */
     constructor(options = {}) {
         super();
@@ -370,6 +371,7 @@ export class PetAI extends EventTarget {
         this.lang = options.lang ?? "en-US";
         this.maxCacheSize = options.maxCacheSize ?? 5;
         this.maxRecentTurns = options.maxRecentTurns ?? 10;
+        this.enabled = options.enabled ?? true;
 
         this.engine = null;
         this.ready = false;
@@ -472,14 +474,21 @@ export class PetAI extends EventTarget {
     }
 
     async _doInit() {
-        if (!LocalLLMEngine.isSupported()) {
-            console.warn("[PetAI] WebGPU unsupported. Fallback phrases only.");
-            this.ready = false;
-            this.dispatchEvent(new CustomEvent("statuschange", { detail: "unsupported" }));
-            return;
-        }
-
         try {
+            if (!this.enabled) {
+                console.warn("[PetAI] AI disabled. Fallback phrases only.");
+                this.ready = false;
+                this.dispatchEvent(new CustomEvent("statuschange", { detail: "disabled" }));
+                return;
+            }
+
+            if (!LocalLLMEngine.isSupported()) {
+                console.warn("[PetAI] WebGPU unsupported. Fallback phrases only.");
+                this.ready = false;
+                this.dispatchEvent(new CustomEvent("statuschange", { detail: "unsupported" }));
+                return;
+            }
+
             this.engine = new LocalLLMEngine(this.modelId, {
                 systemPrompt: [
                     this._languageDirective(),
@@ -499,7 +508,19 @@ export class PetAI extends EventTarget {
                 if (e.detail === "ready") {
                     this.ready = true;
                     this.dispatchEvent(new CustomEvent("statuschange", { detail: "ready" }));
+                } else if (e.detail === "generating") {
+                    this.dispatchEvent(new CustomEvent("statuschange", { detail: "generating" }));
+                } else if (e.detail === "idle") {
+                    this.dispatchEvent(new CustomEvent("statuschange", { detail: "idle" }));
+                } else {
+                    this.dispatchEvent(new CustomEvent("statuschange", { detail: e.detail }));
                 }
+            });
+
+            this.engine.addEventListener("progress", (e) => {
+                this.dispatchEvent(
+                    new CustomEvent("progress", { detail: e.detail })
+                );
             });
 
             this.engine.addEventListener("fallback", (e) => {
@@ -516,6 +537,8 @@ export class PetAI extends EventTarget {
             console.warn("[PetAI] Init failed, using fallback:", err.message);
             this.ready = false;
             this.dispatchEvent(new CustomEvent("statuschange", { detail: "error" }));
+        } finally {
+            this._initPromise = null;
         }
     }
 
@@ -840,6 +863,8 @@ export class PetAI extends EventTarget {
             this.engine = null;
             this.ready = false;
         }
+        this._initPromise = null;
+        this.dispatchEvent(new CustomEvent("statuschange", { detail: "idle" }));
     }
 
     /**
