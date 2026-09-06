@@ -1,5 +1,5 @@
 /* Service Worker - Pocket Pet '96 */
-const CACHE_VERSION = "pocket-pet-v1";
+const CACHE_VERSION = "pocket-pet-v2";
 const PRECACHE = `${CACHE_VERSION}-precache`;
 const RUNTIME = `${CACHE_VERSION}-runtime`;
 
