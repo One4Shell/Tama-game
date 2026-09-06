@@ -671,7 +671,7 @@
         <!-- Achievement Unlock Toast (fisso sullo schermo, visibile sempre) -->
         <div id="achievementToast" class="hidden fixed top-4 left-1/2 z-[200001] bg-[#1f2a08] text-amber-300 text-xs font-bold py-2 px-4 rounded-xl shadow-2xl border-2 border-amber-400 whitespace-nowrap font-mono flex items-center gap-2">
             <span class="text-base" id="achToastIcon">🏆</span>
-            <span id="achToastText">SBLOCCATO!</span>
+            <span id="achToastText" data-i18n="ach.unlocked">SBLOCCATO!</span>
         </div>
 
         <!-- WIDGET POPUP WINDOW CONTAINER -->
@@ -685,21 +685,21 @@
 
                         <!-- Unified Header: Gen/Info (no tabs, switching via edge arrows) -->
                         <div class="flex items-center justify-between gap-2 p-1 pl-1.5 pr-2 bg-black/10 border-b border-[#71824f] min-w-0">
-                            <div class="flex items-center gap-1.5 font-mono text-[12px] font-bold whitespace-nowrap" title="Generazione · Pet attivo/totale · Trofei · Monete">
+                            <div class="flex items-center gap-1.5 font-mono text-[12px] font-bold whitespace-nowrap" title="Generazione · Pet attivo/totale · Trofei · Monete" data-i18n-title="header.title">
                                 <span id="genTracker">GEN 1</span>
                                 <span class="opacity-40">·</span>
                                 <span id="petCountLabel">1/1</span>
                                 <span class="opacity-40">·</span>
-                                <span id="achTracker" title="Trofei sbloccati">🏆 0/15</span>
+                                <span id="achTracker" title="Trofei sbloccati" data-i18n-title="achTracker.title">🏆 0/15</span>
                                 <span class="opacity-40">·</span>
-                                <span id="coinTracker" title="Monete">🪙 0</span>
+                                <span id="coinTracker" title="Monete" data-i18n-title="coinTracker.title">🪙 0</span>
                             </div>
-                            <button id="settingsBtn" class="pet-nav settings-gear" title="Impostazioni" aria-label="Impostazioni">⚙️</button>
+                            <button id="settingsBtn" class="pet-nav settings-gear" title="Impostazioni" aria-label="Impostazioni" data-i18n-title="settingsBtn.title" data-i18n-aria="settingsBtn.aria">⚙️</button>
                         </div>
 
                         <!-- Pet Name Label -->
                         <div class="px-2 py-0.5 bg-black/5 border-b border-dashed border-[#71824f] text-center font-mono text-[12px] font-bold tracking-[0.2em] truncate">
-                            <span id="petNameStage">UOVO</span>
+                            <span id="petNameStage" data-i18n="stage.EGG">UOVO</span>
                         </div>
 
                         <!-- Canvas Viewport (con overlay frecce per cambio pet) -->
@@ -707,37 +707,37 @@
                             <canvas id="gameCanvas" width="310" height="180" class="w-full h-full block image-pixelated touch-none"></canvas>
 
                             <!-- HUD: download modello in background -->
-                            <div id="modelDownloadHud" class="hidden absolute top-1 right-1 z-10 text-[10px] font-mono font-bold text-[#1f2a08] bg-[#a8c04a]/90 px-1.5 py-0.5 rounded">Modello in download…</div>
+                            <div id="modelDownloadHud" class="hidden absolute top-1 right-1 z-10 text-[10px] font-mono font-bold text-[#1f2a08] bg-[#a8c04a]/90 px-1.5 py-0.5 rounded" data-i18n="hud.downloading">Modello in download…</div>
 
                             <!-- Pet Navigation: freccia sinistra a sinistra -->
                             <div class="pet-nav-wrap-left" id="petNavWrapLeft">
-                                <button id="petNavPrev" class="pet-nav hidden" title="Pet precedente" aria-label="Pet precedente">◀</button>
+                                <button id="petNavPrev" class="pet-nav hidden" title="Pet precedente" aria-label="Pet precedente" data-i18n-title="petNav.prev" data-i18n-aria="petNav.prev">◀</button>
                             </div>
                             <!-- Pet Navigation: freccia destra a destra -->
                             <div class="pet-nav-wrap" id="petNavWrap">
-                                <button id="petNavNext" class="pet-nav hidden" title="Pet successivo" aria-label="Pet successivo">▶</button>
+                                <button id="petNavNext" class="pet-nav hidden" title="Pet successivo" aria-label="Pet successivo" data-i18n-title="petNav.next" data-i18n-aria="petNav.next">▶</button>
                             </div>
                         </div>
 
                         <!-- Stats Meter Dashboard (blocchi pixel) -->
                         <div class="px-2 py-1.5 bg-black/5 border-t border-dashed border-[#71824f] grid grid-cols-2 gap-x-3 gap-y-1.5 font-mono text-[11px] font-bold overflow-hidden">
-                            <div class="stat-item" title="Fame">
+                            <div class="stat-item" title="Fame" data-i18n-title="stat.food">
                                 <canvas id="iconHunger" width="22" height="22" class="stat-sprite-icon"></canvas>
                                 <div class="lcd-meter"><div class="lcd-meter-fill" id="barHunger" style="width: 50%;"></div></div>
                             </div>
-                            <div class="stat-item" title="Felicità">
+                            <div class="stat-item" title="Felicità" data-i18n-title="stat.happy">
                                 <canvas id="iconHappy" width="22" height="22" class="stat-sprite-icon"></canvas>
                                 <div class="lcd-meter"><div class="lcd-meter-fill" id="barHappy" style="width: 50%;"></div></div>
                             </div>
-                            <div class="stat-item" title="Energia">
+                            <div class="stat-item" title="Energia" data-i18n-title="stat.energy">
                                 <canvas id="iconEnergy" width="22" height="22" class="stat-sprite-icon"></canvas>
                                 <div class="lcd-meter"><div class="lcd-meter-fill" id="barEnergy" style="width: 50%;"></div></div>
                             </div>
-                            <div class="stat-item" title="Igiene">
+                            <div class="stat-item" title="Igiene" data-i18n-title="stat.hygiene">
                                 <canvas id="iconHygiene" width="22" height="22" class="stat-sprite-icon"></canvas>
                                 <div class="lcd-meter"><div class="lcd-meter-fill" id="barHygiene" style="width: 50%;"></div></div>
                             </div>
-                            <div class="stat-item col-span-2" title="Salute">
+                            <div class="stat-item col-span-2" title="Salute" data-i18n-title="stat.health">
                                 <span class="pxicon pxicon-health"></span>
                                 <div class="lcd-meter"><div class="lcd-meter-fill" id="barHealth" style="width: 50%;"></div></div>
                             </div>
@@ -745,9 +745,9 @@
 
                         <!-- Modal Overlay for Notifications/Alerts -->
                         <div id="overlayModal" class="hidden absolute inset-0 bg-[#879864]/95 flex flex-col items-center justify-center p-3 text-center z-20">
-                            <h3 id="modalTitle" class="text-xs font-bold uppercase mb-1">AVVISO</h3>
-                            <p id="modalBody" class="text-[11px] leading-tight mb-3">Messaggio avviso</p>
-                            <button id="modalBtn" class="bg-[#1f2a08] text-[#879864] px-3 py-1 text-xs font-bold rounded">OK</button>
+                            <h3 id="modalTitle" class="text-xs font-bold uppercase mb-1" data-i18n="modal.title">AVVISO</h3>
+                            <p id="modalBody" class="text-[11px] leading-tight mb-3" data-i18n="modal.body">Messaggio avviso</p>
+                            <button id="modalBtn" class="bg-[#1f2a08] text-[#879864] px-3 py-1 text-xs font-bold rounded" data-i18n="modal.ok">OK</button>
                         </div>
 
                         <!-- Game Over Screen: statistiche finale partita -->
@@ -755,12 +755,12 @@
                             <div class="go-panel custom-scrollbar">
                                 <canvas id="gameOverSprite" width="48" height="48" class="go-sprite"></canvas>
                                 <div class="go-banner go-blink">GAME OVER</div>
-                                <p class="go-subtitle">La tua dinastia si è estinta. Nessun pet è rimasto.</p>
-                                <div class="go-panel-head">STATISTICHE FINALI</div>
+                                <p class="go-subtitle" data-i18n="gameOver.subtitle">La tua dinastia si è estinta. Nessun pet è rimasto.</p>
+                                <div class="go-panel-head" data-i18n="gameOver.head">STATISTICHE FINALI</div>
                                 <div id="gameOverStats" class="go-stats"></div>
                                 <div class="go-actions">
-                                    <button id="gameOverRestartBtn" class="go-btn go-btn--primary">▶ Rigioca</button>
-                                    <button id="gameOverMenuBtn" class="go-btn">⬅ Menu</button>
+                                    <button id="gameOverRestartBtn" class="go-btn go-btn--primary" data-i18n="gameOver.restart">▶ Rigioca</button>
+                                    <button id="gameOverMenuBtn" class="go-btn" data-i18n="gameOver.menu">⬅ Menu</button>
                                 </div>
                             </div>
                         </div>
@@ -768,23 +768,23 @@
                         <!-- Pre-Game Screen: menu principale -->
                         <div id="startScreen" class="hidden absolute inset-0 bg-[#879864]/95 flex flex-col items-center justify-center p-3 text-center z-20">
                             <pre id="menuTitleArt" class="text-[10px] leading-[1.2] font-mono whitespace-pre text-[#1f2a08] mb-2"></pre>
-                            <p class="text-[11px] leading-tight mb-3">Pronto per una nuova partita?</p>
+                            <p class="text-[11px] leading-tight mb-3" data-i18n="startScreen.subtitle">Pronto per una nuova partita?</p>
                             <div class="flex flex-col gap-2 w-full max-w-[220px]">
-                                <button id="startNewGameBtn" class="bg-[#1f2a08] text-[#879864] px-3 py-2 text-xs font-bold rounded">▶ Nuova partita</button>
-                                <button id="startSettingsBtn" class="bg-[#1f2a08] text-[#879864] px-3 py-2 text-xs font-bold rounded">⚙ Impostazioni</button>
+                                <button id="startNewGameBtn" class="bg-[#1f2a08] text-[#879864] px-3 py-2 text-xs font-bold rounded" data-i18n="startScreen.newGame">▶ Nuova partita</button>
+                                <button id="startSettingsBtn" class="bg-[#1f2a08] text-[#879864] px-3 py-2 text-xs font-bold rounded" data-i18n="startScreen.settings">⚙ Impostazioni</button>
                             </div>
                         </div>
 
                         <!-- Settings Modal: AI model picker + suoni + lingua voce -->
                         <div id="settingsModal" class="hidden absolute inset-0 bg-[#879864]/95 flex flex-col items-center justify-center p-3 text-center z-30 overflow-y-auto custom-scrollbar">
-                            <button id="settingsCloseBtn" class="absolute top-2 right-2 w-6 h-6 bg-[#1f2a08] text-[#879864] rounded text-sm font-bold leading-none" title="Chiudi" aria-label="Chiudi impostazioni">✕</button>
-                            <h3 id="settingsTitle" class="text-xs font-bold uppercase mb-2">Impostazioni</h3>
+                            <button id="settingsCloseBtn" class="absolute top-2 right-2 w-6 h-6 bg-[#1f2a08] text-[#879864] rounded text-sm font-bold leading-none" title="Chiudi" aria-label="Chiudi impostazioni" data-i18n-title="settings.close" data-i18n-aria="settings.closeAria">✕</button>
+                            <h3 id="settingsTitle" class="text-xs font-bold uppercase mb-2" data-i18n="settings.title">Impostazioni</h3>
 
                             <label class="settings-label flex items-center gap-2 text-[10px] font-bold self-start ml-1 uppercase mb-2 cursor-pointer">
-                                <input type="checkbox" id="aiToggle" class="accent-[#1f2a08] w-4 h-4"> AI (modello LLM)
+                                <input type="checkbox" id="aiToggle" class="accent-[#1f2a08] w-4 h-4"> <span data-i18n="settings.ai">AI (modello LLM)</span>
                             </label>
 
-                            <label for="modelSelect" class="settings-label text-[10px] font-bold mb-1 self-start ml-1 uppercase">Modello LLM</label>
+                            <label for="modelSelect" class="settings-label text-[10px] font-bold mb-1 self-start ml-1 uppercase" data-i18n="settings.model">Modello LLM</label>
                             <select id="modelSelect" class="w-full text-[11px] p-1 rounded bg-[#1f2a08] text-[#879864] mb-1 font-mono"></select>
                             <p id="modelVramHint" class="settings-hint text-[10px] font-bold mb-1 italic">~0.5 GB</p>
                             <p id="modelStatusHint" class="settings-hint text-[10px] mb-3 opacity-80"></p>
@@ -794,23 +794,23 @@
                                 </div>
                             </div>
 
-                            <label for="langSelect" class="settings-label text-[10px] font-bold mb-1 self-start ml-1 uppercase">Lingua voce</label>
+                            <label for="langSelect" class="settings-label text-[10px] font-bold mb-1 self-start ml-1 uppercase" data-i18n="settings.lang">Lingua</label>
                             <select id="langSelect" class="w-full text-[11px] p-1 rounded bg-[#1f2a08] text-[#879864] mb-2 font-mono">
                                 <option value="it-IT">Italiano</option>
                                 <option value="en-US">English</option>
                             </select>
 
                             <label class="settings-label flex items-center gap-2 text-[10px] font-bold self-start ml-1 uppercase mb-3 cursor-pointer">
-                                <input type="checkbox" id="soundToggle" class="accent-[#1f2a08] w-4 h-4"> Suoni
+                                <input type="checkbox" id="soundToggle" class="accent-[#1f2a08] w-4 h-4"> <span data-i18n="settings.sound">Suoni</span>
                             </label>
 
                             <label class="settings-label flex items-center gap-2 text-[10px] font-bold self-start ml-1 uppercase mb-3 cursor-pointer">
-                                <input type="checkbox" id="voiceToggle" class="accent-[#1f2a08] w-4 h-4"> Voce
+                                <input type="checkbox" id="voiceToggle" class="accent-[#1f2a08] w-4 h-4"> <span data-i18n="settings.voice">Voce</span>
                             </label>
 
                             <div class="flex gap-2 flex-wrap justify-center">
-                                <button id="settingsSaveBtn" class="bg-[#1f2a08] text-[#879864] px-3 py-1 text-xs font-bold rounded">Salva</button>
-                                <button id="settingsCancelBtn" class="bg-[#1f2a08] text-[#879864] px-3 py-1 text-xs font-bold rounded">Annulla</button>
+                                <button id="settingsSaveBtn" class="bg-[#1f2a08] text-[#879864] px-3 py-1 text-xs font-bold rounded" data-i18n="settings.save">Salva</button>
+                                <button id="settingsCancelBtn" class="bg-[#1f2a08] text-[#879864] px-3 py-1 text-xs font-bold rounded" data-i18n="settings.cancel">Annulla</button>
                             </div>
                         </div>
                     </div>
@@ -845,6 +845,7 @@
     <script src="sprites/toy_console.js"></script>
     <script src="sprites/skull.js"></script>
     <script src="sprites/mic.js"></script>
+    <script src="tools/i18n.js"></script>
 
     <script>
         class SoundFX {
@@ -1140,10 +1141,10 @@ function getUniquePetName() {
             const d = Math.floor(s / 86400);
             const h = Math.floor((s % 86400) / 3600);
             const m = Math.floor((s % 3600) / 60);
-            if (d > 0) return `${d}g ${h}h`;
-            if (h > 0) return `${h}h ${m}m`;
-            if (m > 0) return `${m}m ${s % 60}s`;
-            return `${s}s`;
+            if (d > 0) return `${d}${TAMA_I18N.t('unit.day')} ${h}${TAMA_I18N.t('unit.hour')}`;
+            if (h > 0) return `${h}${TAMA_I18N.t('unit.hour')} ${m}${TAMA_I18N.t('unit.min')}`;
+            if (m > 0) return `${m}${TAMA_I18N.t('unit.min')} ${s % 60}${TAMA_I18N.t('unit.sec')}`;
+            return `${s}${TAMA_I18N.t('unit.sec')}`;
         }
         
 
@@ -1287,11 +1288,11 @@ function getUniquePetName() {
 
             // Get current active alert for notification floating badge
             getNotification() {
-                if (this.stage === 'DEAD') return { icon: '☠️', text: 'Deceduto!', level: 'danger' };
-                if (this.isSick) return { icon: '💉', text: 'Ammalato!', level: 'danger' };
-                if (this.hunger < 30) return { icon: '🍖', text: 'Ho fame!', level: 'warning' };
-                if (this.poopCount > 0) return { icon: '💩', text: 'Pulisci!', level: 'warning' };
-                if (this.happiness < 30) return { icon: '😢', text: 'Triste!', level: 'warning' };
+                if (this.stage === 'DEAD') return { icon: '☠️', text: TAMA_I18N.t('notif.dead'), level: 'danger' };
+                if (this.isSick) return { icon: '💉', text: TAMA_I18N.t('notif.sick'), level: 'danger' };
+                if (this.hunger < 30) return { icon: '🍖', text: TAMA_I18N.t('notif.hungry'), level: 'warning' };
+                if (this.poopCount > 0) return { icon: '💩', text: TAMA_I18N.t('notif.clean'), level: 'warning' };
+                if (this.happiness < 30) return { icon: '😢', text: TAMA_I18N.t('notif.sad'), level: 'warning' };
                 return null;
             }
 
@@ -1592,7 +1593,7 @@ function getUniquePetName() {
                         audio.playBeep(350, 'square', 0.04);
                     } else {
                         this.miniGameActive = false;
-                        this.showModal("GIOCO INTERROTTO", "Hai abbandonato il minigioco.");
+                        this.showModal(TAMA_I18N.t('modal.gameAborted.title'), TAMA_I18N.t('modal.gameAborted.body'));
                     }
                     return;
                 }
@@ -1667,7 +1668,7 @@ function getUniquePetName() {
                 if (!this.isMenuActionAvailable(action)) return;
 
                 if (pet.isSleeping && action !== 'SLEEP' && action !== 'MIC') {
-                    this.showModal("STA DORMENDO", "Il pet sta dormendo! Sveglialo prima di fare altre azioni.");
+                    this.showModal(TAMA_I18N.t('modal.sleeping.title'), TAMA_I18N.t('modal.sleeping.body'));
                     return;
                 }
 
@@ -1686,7 +1687,7 @@ function getUniquePetName() {
                         if (pet.canPlay()) {
                             this.startMiniGame();
                         } else {
-                            this.showModal("IMPOSSIBILE GIOCARE", "Il pet è un uovo oppure non ha abbastanza energia!");
+                            this.showModal(TAMA_I18N.t('modal.noPlay.title'), TAMA_I18N.t('modal.noPlay.body'));
                         }
                         break;
                     case 'CLEAN':
@@ -1701,7 +1702,7 @@ function getUniquePetName() {
                         break;
                     case 'HEAL':
                         if (this.coins < 80) {
-                            this.showModal("MONETE INSUFFICIENTI", "Servono 80 monete per curare!");
+                            this.showModal(TAMA_I18N.t('modal.noCoins.title'), TAMA_I18N.t('modal.noCoins.body'));
                             break;
                         }
                         if (pet.heal()) {
@@ -1709,7 +1710,7 @@ function getUniquePetName() {
                             pet.careStats.heals++;
                             this.achievements.record('HEAL');
                         } else {
-                            this.showModal("IN SALUTE", "Il tuo pet non è ammalato!");
+                            this.showModal(TAMA_I18N.t('modal.healthy.title'), TAMA_I18N.t('modal.healthy.body'));
                         }
                         break;
                 }
@@ -1732,8 +1733,8 @@ function getUniquePetName() {
                 if (!recognizer || !recognizer.isSupported()) {
                     const reason = recognizer ? recognizer.unsupportedReason : null;
                     const msg = reason === 'brave'
-                        ? '🗣️ Riconoscimento vocale non disponibile in Brave — usa Chrome o Edge'
-                        : 'Riconoscimento vocale non supportato';
+                        ? TAMA_I18N.t('mic.unsupportedBrave')
+                        : TAMA_I18N.t('mic.unsupported');
                     this.petSpeech = msg;
                     this.speechTimer = 300;
                     this.speechOpacity = 0;
@@ -1744,7 +1745,7 @@ function getUniquePetName() {
                     return;
                 }
                 if (!this.petAI || !this.petAI.enabled) {
-                    this.petSpeech = 'AI disabilitata: microfono spento';
+                    this.petSpeech = TAMA_I18N.t('mic.aiDisabled');
                     this.speechTimer = 180;
                     this.speechOpacity = 0;
                     return;
@@ -1886,7 +1887,7 @@ function getUniquePetName() {
 
                 audio.playChime();
                 if (this.isOpen) {
-                    this.showModal("UOVO DEPOSTO!", "Un nuovo uovo è stato aggiunto alla famiglia con tratti ereditati!");
+                    this.showModal(TAMA_I18N.t('modal.eggLaid.title'), TAMA_I18N.t('modal.eggLaid.body'));
                 }
                 if (this.petAI && parentPet.canAct()) {
                     this.startLiveSpeech(parentPet, {
@@ -1965,7 +1966,7 @@ function getUniquePetName() {
                             }
                             this.achievements.record('WIN');
                             this.coins += 20;
-                            this.showModal("VITTORIA!", "Hai vinto! Felicità aumentata! +20 monete!");
+                            this.showModal(TAMA_I18N.t('modal.win.title'), TAMA_I18N.t('modal.win.body'));
                             if (this.petAI && pet.canAct()) {
                                 this.startLiveSpeech(pet, {
                                     event: { type: 'PLAY', detail: 'The user just beat me at the game. React with playful enthusiasm and friendly rivalry in a short line.' }
@@ -2051,8 +2052,8 @@ function getUniquePetName() {
                         const wasLastPet = this.pets.length === 1;
                         this.achievements.record('DEPARTED');
                         this.archivePet(currentPet, 'DEPARTED');
-                        const toyLoss = currentPet.toys && currentPet.toys.length ? ` I suoi ${currentPet.toys.length} toy sono andati con lui.` : '';
-                        this.showModal("ADDIO", `${currentPet.name} è partito felicemente per il Pianeta Pet, lasciando spazio alle nuove generazioni!${toyLoss}`, wasLastPet ? () => this.triggerGameOver() : null);
+                        const toyLoss = currentPet.toys && currentPet.toys.length ? TAMA_I18N.t('modal.departed.toys', { count: currentPet.toys.length }) : '';
+                        this.showModal(TAMA_I18N.t('modal.departed.title'), TAMA_I18N.t('modal.departed.body', { name: currentPet.name, toys: toyLoss }), wasLastPet ? () => this.triggerGameOver() : null);
                         this.pets.splice(this.activePetIndex, 1);
                         if (!wasLastPet) this.activePetIndex = 0;
                         this.checkAchievements();
@@ -2641,7 +2642,7 @@ function getUniquePetName() {
                 if (this.miniGameActive) {
                     if (this.hitCloseZone(x, y)) {
                         this.miniGameActive = false;
-                        this.showModal("GIOCO INTERROTTO", "Hai abbandonato il minigioco.");
+                        this.showModal(TAMA_I18N.t('modal.gameAborted.title'), TAMA_I18N.t('modal.gameAborted.body'));
                     }
                     return;
                 }
@@ -2764,7 +2765,7 @@ function getUniquePetName() {
                 const vs = this.canvas.height / 180;
                 this.ctx.fillStyle = '#1f2a08';
                 this.ctx.font = 'bold ' + Math.round(15 * hs) + 'px monospace';
-                this.ctx.fillText(`STELLE: ${this.miniGameScore} / 5`, 10 * hs, 20 * vs);
+                this.ctx.fillText(TAMA_I18N.t('minigame.stars', { score: this.miniGameScore }), 10 * hs, 20 * vs);
 
                 this.ctx.font = Math.round(24 * hs) + 'px monospace';
                 this.ctx.fillText('★', this.starX * hs, this.starY * vs);
@@ -2794,9 +2795,9 @@ function getUniquePetName() {
                 const owned = pet && Array.isArray(pet.toys) ? pet.toys : [];
                 return [
                     ...Object.keys(TOYS).filter(id => !owned.includes(id))
-                        .map(id => ({ type: 'TOY', id, name: TOYS[id].name, price: TOYS[id].price, sprite: TOYS[id].sprite })),
-                    { type: 'SNACK', id: 'SNACK', name: 'Snack', price: 40, sprite: getArt('FEED') },
-                    { type: 'EXIT', id: 'EXIT', name: 'Esci', price: 0, sprite: null }
+                        .map(id => ({ type: 'TOY', id, name: TAMA_I18N.t('toy.' + id), price: TOYS[id].price, sprite: TOYS[id].sprite })),
+                    { type: 'SNACK', id: 'SNACK', name: TAMA_I18N.t('shop.snack'), price: 40, sprite: getArt('FEED') },
+                    { type: 'EXIT', id: 'EXIT', name: TAMA_I18N.t('shop.exit'), price: 0, sprite: null }
                 ];
             }
 
@@ -2810,7 +2811,7 @@ function getUniquePetName() {
                     this.shopScreenOpen = false;
                 } else {
                     if (!this.getActivePet()) {
-                        this.showModal("SHOP", "Nessun pet a cui fare regali!");
+                        this.showModal(TAMA_I18N.t('modal.shop.title'), TAMA_I18N.t('modal.shop.body'));
                         return;
                     }
                     this.shopScreenOpen = true;
@@ -2848,21 +2849,21 @@ function getUniquePetName() {
                         // Il toy esce dal catalogo: riclampa la selezione sulla nuova lista
                         this.shopIndex = Math.min(this.shopIndex, this.getShopItems().length - 1);
                         audio.playChime();
-                        this.flashShop(`${def.name} assegnato a ${pet.name}!`);
+                        this.flashShop(TAMA_I18N.t('shop.flash.toyAssigned', { toy: TAMA_I18N.t('toy.' + item.id), name: pet.name }));
                     } else {
                         audio.playAlert();
-                        this.flashShop('Monete insufficienti!');
+                        this.flashShop(TAMA_I18N.t('shop.flash.noCoins'));
                     }
                 } else if (item.type === 'SNACK') {
-                    if (pet.stage === 'EGG') { audio.playAlert(); this.flashShop('È un uovo!'); return; }
-                    if (pet.isSleeping) { audio.playAlert(); this.flashShop('Sta dormendo!'); return; }
-                    if (this.coins < item.price) { audio.playAlert(); this.flashShop('Monete insufficienti!'); return; }
+                    if (pet.stage === 'EGG') { audio.playAlert(); this.flashShop(TAMA_I18N.t('shop.flash.egg')); return; }
+                    if (pet.isSleeping) { audio.playAlert(); this.flashShop(TAMA_I18N.t('shop.flash.sleeping')); return; }
+                    if (this.coins < item.price) { audio.playAlert(); this.flashShop(TAMA_I18N.t('shop.flash.noCoins')); return; }
                     this.coins -= item.price;
                     pet.hunger = Math.min(100, pet.hunger + 30);
                     pet.careStats.feeds++;
                     this.achievements.record('FEED');
                     audio.playBeep(600, 'square', 0.1);
-                    this.flashShop('Gnam! Fame +30');
+                    this.flashShop(TAMA_I18N.t('shop.flash.snackEaten'));
                 }
 
                 this.saveGame();
@@ -2881,7 +2882,7 @@ function getUniquePetName() {
                 c.fillRect(0, 0, this.canvas.width, 18 * vs);
                 c.fillStyle = '#879864';
                 c.font = 'bold ' + Math.round(13 * hs) + 'px monospace';
-                c.fillText(`SHOP  $ ${Math.floor(this.coins)}`, 8 * hs, 13 * vs);
+                c.fillText(TAMA_I18N.t('shop.title', { coins: Math.floor(this.coins) }), 8 * hs, 13 * vs);
                 c.textAlign = 'right';
                 c.fillText(`${this.shopIndex + 1}/${items.length}`, 280 * hs, 13 * vs);
                 c.textAlign = 'left';
@@ -2922,11 +2923,11 @@ function getUniquePetName() {
                     c.font = Math.round(10 * hs) + 'px monospace';
                     let sub = '';
                     if (item.type === 'TOY') {
-                        sub = `toy · -${Math.round(TOYS[item.id].bonus * 100)}% calo gioia`;
+                        sub = TAMA_I18N.t('shop.toySub', { pct: Math.round(TOYS[item.id].bonus * 100) });
                     } else if (item.type === 'SNACK') {
-                        sub = 'fame +30';
+                        sub = TAMA_I18N.t('shop.snackSub');
                     } else {
-                        sub = 'Tocca per uscire';
+                        sub = TAMA_I18N.t('shop.exitSub');
                     }
                     c.fillText(sub, 28 * hs, y + 17 * vs);
 
@@ -2959,7 +2960,7 @@ function getUniquePetName() {
                 c.fillRect(0, 0, this.canvas.width, 18 * vs);
                 c.fillStyle = '#879864';
                 c.font = 'bold ' + Math.round(13 * hs) + 'px monospace';
-                c.fillText(`TROFEI ${Object.keys(this.achievements.unlocked).length}/${ACHIEVEMENTS.length}`, 8 * hs, 13 * vs);
+                c.fillText(TAMA_I18N.t('ach.title', { unlocked: Object.keys(this.achievements.unlocked).length, total: ACHIEVEMENTS.length }), 8 * hs, 13 * vs);
 
                 const rowH = 22 * vs;
                 const startY = 24 * vs;
@@ -2979,9 +2980,9 @@ function getUniquePetName() {
                     c.fillText(unlocked ? def.icon : '🔒', 8 * hs, y + 12 * vs);
 
                     c.font = 'bold ' + Math.round(13 * hs) + 'px monospace';
-                    c.fillText(def.title, 28 * hs, y + 8 * vs);
+                    c.fillText(TAMA_I18N.t('ach.' + def.id + '.title'), 28 * hs, y + 8 * vs);
                     c.font = Math.round(10 * hs) + 'px monospace';
-                    c.fillText(def.desc, 28 * hs, y + 17 * vs);
+                    c.fillText(TAMA_I18N.t('ach.' + def.id + '.desc'), 28 * hs, y + 17 * vs);
 
                     c.font = 'bold ' + Math.round(12 * hs) + 'px monospace';
                     c.textAlign = 'right';
@@ -3061,7 +3062,7 @@ function getUniquePetName() {
                 c.fillRect(0, 0, this.canvas.width, 18 * vs);
                 c.fillStyle = '#879864';
                 c.font = 'bold ' + Math.round(13 * hs) + 'px monospace';
-                c.fillText(`ALBERO GEN MAX ${maxGen} · ${totalPets} PET`, 8 * hs, 13 * vs);
+                c.fillText(TAMA_I18N.t('tree.title', { gen: maxGen, pets: totalPets }), 8 * hs, 13 * vs);
 
                 const rowH = 22 * vs;
                 const startY = 24 * vs;
@@ -3077,7 +3078,7 @@ function getUniquePetName() {
                         c.fillRect(0, y, this.canvas.width, 12 * vs);
                         c.fillStyle = '#1f2a08';
                         c.font = 'bold ' + Math.round(12 * hs) + 'px monospace';
-                        c.fillText(`— GENERAZIONE ${row.gen} —`, 8 * hs, y + 9 * vs);
+                        c.fillText(TAMA_I18N.t('tree.genHead', { gen: row.gen }), 8 * hs, y + 9 * vs);
                         continue;
                     }
 
@@ -3095,12 +3096,12 @@ function getUniquePetName() {
 
                     c.font = 'bold ' + Math.round(12 * hs) + 'px monospace';
                     c.textAlign = 'right';
-                    const fateAge = pet.fate === 'EGG' ? 'uovo' : formatAge(pet.ageSeconds);
+                    const fateAge = pet.fate === 'EGG' ? TAMA_I18N.t('tree.egg') : formatAge(pet.ageSeconds);
                     c.fillText(`${fateIcon[pet.fate] || '?'} ${fateAge}`, 302 * hs, y + 8 * vs);
                     c.textAlign = 'left';
 
                     c.font = Math.round(10 * hs) + 'px monospace';
-                    const origin = pet.parentName ? `di ${pet.parentName}` : 'capostipite';
+                    const origin = pet.parentName ? TAMA_I18N.t('tree.parent', { name: pet.parentName }) : TAMA_I18N.t('tree.founder');
                     c.fillText(`${origin} · 🍖${pet.stats.feeds} ⭐${pet.stats.wins} 🧹${pet.stats.cleans} 💉${pet.stats.heals}`, 28 * hs, y + 17 * vs);
 
                     c.fillStyle = 'rgba(31,42,8,0.2)';
@@ -3126,7 +3127,7 @@ function getUniquePetName() {
 
                 const toast = document.getElementById('achievementToast');
                 document.getElementById('achToastIcon').innerText = def.icon;
-                document.getElementById('achToastText').innerText = 'SBLOCCATO! ' + def.title.toUpperCase();
+                document.getElementById('achToastText').innerText = TAMA_I18N.t('ach.unlocked') + ' ' + TAMA_I18N.t('ach.' + def.id + '.title').toUpperCase();
                 toast.classList.remove('hidden', 'achievement-toast-show');
                 void toast.offsetWidth; // riavvia l'animazione
                 toast.classList.add('achievement-toast-show');
@@ -3164,7 +3165,7 @@ function getUniquePetName() {
 
                 this.normalizeMenuSelection();
 
-                document.getElementById('petNameStage').innerText = `${pet.name} · ${pet.stage}`;
+                document.getElementById('petNameStage').innerText = `${pet.name} · ${TAMA_I18N.t('stage.' + pet.stage)}`;
                 document.getElementById('genTracker').innerText = `GEN ${pet.generation}`;
 
                 [['barHunger', pet.hunger], ['barHappy', pet.happiness], ['barEnergy', pet.energy], ['barHygiene', pet.hygiene], ['barHealth', pet.health]].forEach(([id, value]) => {
@@ -3174,8 +3175,8 @@ function getUniquePetName() {
                 });
 
                 if (pet.stage === 'DEAD') {
-                    const toyLoss = pet.toys && pet.toys.length ? ` I suoi toy sono andati perduti con lui.` : '';
-                    this.showModal("PET DECEDUTO", `Il tuo pet è morto per negligenza.${toyLoss}`, () => {
+                    const toyLoss = pet.toys && pet.toys.length ? TAMA_I18N.t('modal.dead.toys') : '';
+                    this.showModal(TAMA_I18N.t('modal.dead.title'), TAMA_I18N.t('modal.dead.body', { toys: toyLoss }), () => {
                         this.archivePet(pet, 'DEAD');
                         this.pets.splice(this.activePetIndex, 1);
                         if (this.pets.length === 0) {
@@ -3251,19 +3252,19 @@ function getUniquePetName() {
                 const deadCount = history.filter(e => e.fate === 'DEAD').length;
                 const departedCount = history.filter(e => e.fate === 'DEPARTED').length;
                 const rows = [
-                    ['Pet allevati', `${Math.max(this.totalPetsRaised, s.totalRaised)}`],
-                    ['Generazione max', `${Math.max(this.highestGen, s.maxGen)}`],
-                    ['Monete', `${Math.floor(this.coins)}`],
-                    ['Trofei', `${Object.keys(this.achievements.unlocked).length}/${ACHIEVEMENTS.length}`],
-                    ['Schiusi', `${s.hatchedCount}`],
-                    ['Depositi', `${s.breedsCount}`],
-                    ['Pasti', `${s.feedsCount}`],
-                    ['Pulizie', `${s.cleansCount}`],
-                    ['Cure', `${s.healsCount}`],
-                    ['Vittorie', `${s.winsCount}`],
-                    ['Partiti', `${departedCount}`],
-                    ['Deceduti', `${deadCount}`],
-                    ['Specie viste', `${s.speciesSeen.length}`]
+                    [TAMA_I18N.t('go.petsRaised'), `${Math.max(this.totalPetsRaised, s.totalRaised)}`],
+                    [TAMA_I18N.t('go.maxGen'), `${Math.max(this.highestGen, s.maxGen)}`],
+                    [TAMA_I18N.t('go.coins'), `${Math.floor(this.coins)}`],
+                    [TAMA_I18N.t('go.trophies'), `${Object.keys(this.achievements.unlocked).length}/${ACHIEVEMENTS.length}`],
+                    [TAMA_I18N.t('go.hatched'), `${s.hatchedCount}`],
+                    [TAMA_I18N.t('go.laid'), `${s.breedsCount}`],
+                    [TAMA_I18N.t('go.meals'), `${s.feedsCount}`],
+                    [TAMA_I18N.t('go.cleans'), `${s.cleansCount}`],
+                    [TAMA_I18N.t('go.heals'), `${s.healsCount}`],
+                    [TAMA_I18N.t('go.wins'), `${s.winsCount}`],
+                    [TAMA_I18N.t('go.departed'), `${departedCount}`],
+                    [TAMA_I18N.t('go.dead'), `${deadCount}`],
+                    [TAMA_I18N.t('go.species'), `${s.speciesSeen.length}`]
                 ];
                 const statsEl = document.getElementById('gameOverStats');
                 if (statsEl) {
@@ -3438,7 +3439,7 @@ function getUniquePetName() {
 
             const petAI = new PetAI({
                 modelId: getSavedModelId(),
-                lang: getSetting(SET_LANG_KEY, 'en-US'),
+                lang: TAMA_I18N.getLang(),
                 maxCacheSize: 5,
                 enabled: getSetting(SET_AI_KEY, '0') !== '0',
             });
@@ -3478,7 +3479,7 @@ function getUniquePetName() {
                 console.warn(`[PetAI] Initial model failed; using "${e.detail.label}".`);
                 const statusHint = document.getElementById('modelStatusHint');
                 if (statusHint) {
-                    statusHint.textContent = `Auto-switched to ${e.detail.label} (initial model too heavy).`;
+                    statusHint.textContent = TAMA_I18N.t('model.autoSwitched', { label: e.detail.label });
                 }
             });
 
@@ -3524,8 +3525,7 @@ function getUniquePetName() {
                 if (soundToggle) soundToggle.checked = getSetting(SET_SOUND_KEY, '1') !== '0';
                 if (voiceToggle) voiceToggle.checked = getSetting(SET_VOICE_KEY, '0') !== '0';
                 if (langSelect) {
-                    const savedLang = getSetting(SET_LANG_KEY, 'en-US');
-                    langSelect.value = savedLang === 'en-GB' ? 'en-US' : savedLang;
+                    langSelect.value = TAMA_I18N.normalizeLang(getSetting(SET_LANG_KEY, TAMA_I18N.detectDefaultLang()));
                 }
                 const aiEnabled = getSetting(SET_AI_KEY, '0') !== '0';
                 if (aiToggle) aiToggle.checked = aiEnabled;
@@ -3535,7 +3535,7 @@ function getUniquePetName() {
                 }
                 if (modelVramHint) {
                     modelVramHint.textContent = aiEnabled
-                        ? `VRAM stimata: ${(LLM_MODELS.find((m) => m.id === petAI.modelId) || {}).vram || ''}`
+                        ? TAMA_I18N.t('model.vram', { vram: (LLM_MODELS.find((m) => m.id === petAI.modelId) || {}).vram || '' })
                         : '';
                 }
             };
@@ -3549,7 +3549,7 @@ function getUniquePetName() {
                     }
                     if (modelVramHint) {
                         modelVramHint.textContent = aiEnabled
-                            ? `VRAM stimata: ${(LLM_MODELS.find((m) => m.id === petAI.modelId) || {}).vram || ''}`
+                            ? TAMA_I18N.t('model.vram', { vram: (LLM_MODELS.find((m) => m.id === petAI.modelId) || {}).vram || '' })
                             : '';
                     }
                 });
@@ -3565,7 +3565,7 @@ function getUniquePetName() {
                 modelSelect.value = petAI.modelId;
                 const syncHint = () => {
                     const sel = LLM_MODELS.find((m) => m.id === modelSelect.value);
-                    if (modelVramHint) modelVramHint.textContent = sel ? `VRAM stimata: ${sel.vram}` : '';
+                    if (modelVramHint) modelVramHint.textContent = sel ? TAMA_I18N.t('model.vram', { vram: sel.vram }) : '';
                 };
                 modelSelect.addEventListener('change', () => {
                     syncHint();
@@ -3582,7 +3582,7 @@ function getUniquePetName() {
                 if (modelSelect) {
                     modelSelect.value = restoreId;
                     const sel = LLM_MODELS.find((m) => m.id === modelSelect.value);
-                    if (modelVramHint) modelVramHint.textContent = sel ? `VRAM stimata: ${sel.vram}` : '';
+                    if (modelVramHint) modelVramHint.textContent = sel ? TAMA_I18N.t('model.vram', { vram: sel.vram }) : '';
                 }
                 syncSettingsControls();
             }
@@ -3633,8 +3633,8 @@ function getUniquePetName() {
                         const statusHint = document.getElementById('modelStatusHint');
                         if (statusHint) {
                             statusHint.textContent = res && res.error
-                                ? `Errore caricamento modello: ${res.error.message}`
-                                : 'Errore caricamento modello';
+                                ? TAMA_I18N.t('model.errorDetail', { msg: res.error.message })
+                                : TAMA_I18N.t('model.error');
                         }
                         return;
                     }
@@ -3651,14 +3651,14 @@ function getUniquePetName() {
                         const statusHint = document.getElementById('modelStatusHint');
                         if (statusHint) {
                             const sel = LLM_MODELS.find((m) => m.id === res.modelId);
-                            statusHint.textContent = `Auto-switched to ${sel ? sel.label : res.modelId} (model too heavy).`;
+                            statusHint.textContent = TAMA_I18N.t('model.autoSwitched2', { label: sel ? sel.label : res.modelId });
                         }
                     }
                 } catch (err) {
                     console.warn('[Settings] Reload failed:', err.message);
                     updateModelStatus('error');
                     const statusHint = document.getElementById('modelStatusHint');
-                    if (statusHint) statusHint.textContent = `Reload failed: ${err.message}`;
+                    if (statusHint) statusHint.textContent = TAMA_I18N.t('model.reloadFailed', { msg: err.message });
                 } finally {
                     reloadCount = Math.max(0, reloadCount - 1);
                     aiReloading = reloadCount > 0;
@@ -3677,31 +3677,31 @@ function getUniquePetName() {
                 };
                 switch (status) {
                     case 'loading':
-                        setText(progress !== null ? `Download in corso… ${Math.round(progress * 100)}%` : 'Download in corso…');
+                        setText(progress !== null ? TAMA_I18N.t('model.downloadingPct', { pct: Math.round(progress * 100) }) : TAMA_I18N.t('model.downloading'));
                         setBar(true, progress !== null ? progress * 100 : 3);
                         break;
                     case 'ready':
-                        setText('Modello pronto');
+                        setText(TAMA_I18N.t('model.ready'));
                         setBar(false, 0);
                         break;
                     case 'generating':
-                        setText('Generazione in corso…');
+                        setText(TAMA_I18N.t('model.generating'));
                         setBar(false, 0);
                         break;
                     case 'idle':
-                        setText(petAI.enabled ? 'Modello non caricato' : 'AI disattivata: frasi pre-scritte');
+                        setText(petAI.enabled ? TAMA_I18N.t('model.notLoaded') : TAMA_I18N.t('model.aiDisabled'));
                         setBar(false, 0);
                         break;
                     case 'disabled':
-                        setText('AI disattivata: frasi pre-scritte');
+                        setText(TAMA_I18N.t('model.aiDisabled'));
                         setBar(false, 0);
                         break;
                     case 'unsupported':
-                        setText('WebGPU non supportata dal browser');
+                        setText(TAMA_I18N.t('model.unsupported'));
                         setBar(false, 0);
                         break;
                     case 'error':
-                        setText('Errore caricamento modello');
+                        setText(TAMA_I18N.t('model.error'));
                         setBar(false, 0);
                         break;
                     default:
@@ -3722,7 +3722,7 @@ function getUniquePetName() {
                 modelDownloadHud.classList.toggle('hidden', !show);
                 if (show) {
                     const pct = progress !== null ? Math.round(progress * 100) : null;
-                    modelDownloadHud.textContent = pct !== null ? `Modello in download… ${pct}%` : 'Modello in download…';
+                    modelDownloadHud.textContent = pct !== null ? TAMA_I18N.t('hud.downloadingPct', { pct }) : TAMA_I18N.t('hud.downloading');
                 }
             }
 
@@ -3761,7 +3761,7 @@ function getUniquePetName() {
                     if (modelSelect) {
                         modelSelect.value = petAI.modelId;
                         const sel = LLM_MODELS.find((m) => m.id === petAI.modelId);
-                        if (modelVramHint) modelVramHint.textContent = sel ? `VRAM stimata: ${sel.vram}` : '';
+                        if (modelVramHint) modelVramHint.textContent = sel ? TAMA_I18N.t('model.vram', { vram: sel.vram }) : '';
                     }
                     syncSettingsControls();
                     updateModelStatus(
@@ -3797,14 +3797,15 @@ function getUniquePetName() {
                         setSetting(SET_VOICE_KEY, voiceToggle.checked ? '1' : '0');
                     }
                     if (langSelect) {
-                        const lang = langSelect.value || 'en-US';
+                        const lang = TAMA_I18N.normalizeLang(langSelect.value || 'en-US');
                         const langChanged = lang !== petAI.lang;
-                        setSetting(SET_LANG_KEY, lang);
+                        TAMA_I18N.setLang(lang);
                         synth.lang = lang;
                         if (petAI) petAI.lang = lang;
                         if (recognizer.recognition) recognizer.recognition.lang = lang;
                         if (synth._loadVoices) synth._loadVoices();
                         if (langChanged) savedLangChanged = true;
+                        engine.updateUI();
                     }
                     setSetting(SET_AI_KEY, newEnabled ? '1' : '0');
                     savedAiState.modelId = newId;
@@ -3825,10 +3826,9 @@ function getUniquePetName() {
             const synth = new PetSynth({ lang: "en-US", rate: 0.9 });
             engine.petSynth = synth;
 
-            // Applica la lingua voce salvata a TTS e STT.
-            // Normalizza un'eventuale en-GB salvata in passato sulla variante US.
-            let savedLang = getSetting(SET_LANG_KEY, 'en-US');
-            if (savedLang === 'en-GB') savedLang = 'en-US';
+            // Applica la lingua voce salvata a TTS e STT (la UI è già stata
+            // impostata da tools/i18n.js all'avvio).
+            let savedLang = TAMA_I18N.getLang();
             synth.lang = savedLang;
             recognizer.lang = savedLang;
             if (recognizer.recognition) recognizer.recognition.lang = savedLang;
@@ -3847,7 +3847,7 @@ function getUniquePetName() {
                     const pet = engine.getActivePet();
                     if (pet && pet.canAct()) {
                         engine.userInputSpeech = null;
-                        engine.petSpeech = '🎤 Speak now...';
+                        engine.petSpeech = TAMA_I18N.t('mic.speakNow');
                         engine.speechTimer = 300;
                         engine.speechOpacity = 0;
                     }
@@ -3860,7 +3860,7 @@ function getUniquePetName() {
                 recognizer.addEventListener('retry', (e) => {
                     const { attempt, maxRetries } = e.detail;
                     console.warn(`[STT] Riconnessione... tentativo ${attempt}/${maxRetries}`);
-                    engine.petSpeech = `🔄 Riconnessione... (${attempt}/${maxRetries})`;
+                    engine.petSpeech = TAMA_I18N.t('mic.reconnecting', { attempt, max: maxRetries });
                     engine.speechTimer = 120;
                     engine.speechOpacity = 0;
                 });
@@ -3869,11 +3869,11 @@ function getUniquePetName() {
                     console.warn('[STT] Errore:', e.detail.message);
                     engine.isListening = false;
                     if (e.detail.error === 'not-allowed') {
-                        engine.petSpeech = 'Permesso microfono negato';
+                        engine.petSpeech = TAMA_I18N.t('mic.permissionDenied');
                         engine.speechTimer = 180;
                         engine.speechOpacity = 0;
                     } else if (e.detail.error === 'network') {
-                        engine.petSpeech = '❌ Errore di rete - controlla la connessione';
+                        engine.petSpeech = TAMA_I18N.t('mic.networkError');
                         engine.speechTimer = 240;
                         engine.speechOpacity = 0;
                     }
