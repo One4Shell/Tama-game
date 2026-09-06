@@ -797,8 +797,7 @@
                             <label for="langSelect" class="settings-label text-[10px] font-bold mb-1 self-start ml-1 uppercase">Lingua voce</label>
                             <select id="langSelect" class="w-full text-[11px] p-1 rounded bg-[#1f2a08] text-[#879864] mb-2 font-mono">
                                 <option value="it-IT">Italiano</option>
-                                <option value="en-US">English (US)</option>
-                                <option value="en-GB">English (UK)</option>
+                                <option value="en-US">English</option>
                             </select>
 
                             <label class="settings-label flex items-center gap-2 text-[10px] font-bold self-start ml-1 uppercase mb-3 cursor-pointer">
@@ -3524,7 +3523,10 @@ function getUniquePetName() {
             const syncSettingsControls = () => {
                 if (soundToggle) soundToggle.checked = getSetting(SET_SOUND_KEY, '1') !== '0';
                 if (voiceToggle) voiceToggle.checked = getSetting(SET_VOICE_KEY, '0') !== '0';
-                if (langSelect) langSelect.value = getSetting(SET_LANG_KEY, 'en-US');
+                if (langSelect) {
+                    const savedLang = getSetting(SET_LANG_KEY, 'en-US');
+                    langSelect.value = savedLang === 'en-GB' ? 'en-US' : savedLang;
+                }
                 const aiEnabled = getSetting(SET_AI_KEY, '0') !== '0';
                 if (aiToggle) aiToggle.checked = aiEnabled;
                 if (modelSelect) {
@@ -3824,7 +3826,9 @@ function getUniquePetName() {
             engine.petSynth = synth;
 
             // Applica la lingua voce salvata a TTS e STT.
-            const savedLang = getSetting(SET_LANG_KEY, 'en-US');
+            // Normalizza un'eventuale en-GB salvata in passato sulla variante US.
+            let savedLang = getSetting(SET_LANG_KEY, 'en-US');
+            if (savedLang === 'en-GB') savedLang = 'en-US';
             synth.lang = savedLang;
             recognizer.lang = savedLang;
             if (recognizer.recognition) recognizer.recognition.lang = savedLang;
