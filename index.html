@@ -1006,7 +1006,7 @@ function getUniquePetName() {
 }
 
 
-        const DIFFICULTY = .1; // >1 = barre scendono più veloce, <1 = più lento
+        const DIFFICULTY = .05; // >1 = barre scendono più veloce, <1 = più lento
 
         // ---- SHOP ----
         // Toy assegnabili al pet: price in monete, bonus = riduzione calo felicità
@@ -1114,24 +1114,22 @@ function getUniquePetName() {
         // ---- CONFIGURAZIONE GIOCO ----
         // I range sono in secondi: il valore effettivo è casuale tra min e max
         const CONFIG = {
-            eggSpawn:  { min: 1, max: 2 },  // attesa prima che appaia un nuovo uovo
-            eggTaps:   { min: 6, max: 10 }, // tap necessari per rompere l'uovo (schiusa manuale)
+            eggTaps:   { min: 25, max: 35 }, // tap necessari per rompere l'uovo (schiusa manuale)
             evolution: {
-                babyToAdult: 30,             // secondi di età: BABY -> ADULT
-                adultToSenior: 80,           // ADULT -> SENIOR
-                seniorToDeparture: 120        // SENIOR -> DEPARTED
+                babyToAdult: 300,             // secondi di età: BABY -> ADULT
+                adultToSenior: 1800,           // ADULT -> SENIOR
+                seniorToDeparture: 2500        // SENIOR -> DEPARTED
             },
             breeding: {
-                highCareSeconds: 180,          // secondi di cure ottimali per deporre
-                happinessThreshold: 80,
+                highCareSeconds: 600,          // secondi di cure ottimali per deporre
+                happinessThreshold: 75,
                 healthThreshold: 80
             },
             actions: {
                 feedHunger: 30, feedHealth: 5,
                 playHappiness: 50, playEnergyCost: 15,
                 healHealth: 20
-            },
-            ui: { eggBannerSeconds: 2 }       // durata banner "uovo trovato"
+            }      // durata banner "uovo trovato"
         };
 
         // Valore casuale dentro un range { min, max }
